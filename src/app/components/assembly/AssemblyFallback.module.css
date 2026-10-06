@@ -1,0 +1,74 @@
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.op {
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  color: var(--fg-faint);
+}
+
+.piece {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-2);
+  border-radius: var(--radius-m);
+  border: 1px solid rgb(243 237 227 / 0.1);
+  background: var(--bg-raised);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+  min-width: 5.5rem;
+}
+
+.piece[aria-pressed='true'] {
+  border-color: rgb(217 164 65 / 0.6);
+  box-shadow: 0 0 0 1px rgb(217 164 65 / 0.35);
+}
+
+.whole {
+  cursor: default;
+}
+
+.glyph {
+  width: 4rem;
+  height: 4rem;
+  overflow: visible;
+}
+
+.glyph path {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ink {
+  stroke: var(--fg);
+}
+
+.gold {
+  stroke: var(--accent-text, var(--k-gold));
+}
+
+.faint {
+  stroke: var(--fg);
+  opacity: 0.12;
+}
+
+.caption {
+  font-size: var(--fs-small);
+  color: var(--fg-muted);
+}

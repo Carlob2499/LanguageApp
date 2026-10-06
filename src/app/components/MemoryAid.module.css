@@ -1,0 +1,41 @@
+.aid {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.label {
+  font-weight: 600;
+}
+
+.yours {
+  color: var(--fg-faint);
+  font-weight: 400;
+}
+
+.field {
+  width: 100%;
+  resize: vertical;
+  min-height: 3.5rem;
+  padding: var(--sp-3);
+  border-radius: var(--radius-m);
+  border: 1px solid rgb(243 237 227 / 0.14);
+  background: var(--bg-raised);
+  color: var(--fg);
+  font: inherit;
+  line-height: 1.5;
+}
+
+.field::placeholder {
+  color: var(--fg-faint);
+}
+
+.field:focus-visible {
+  outline: 2px solid var(--k-gold);
+  outline-offset: 2px;
+}
+
+.note {
+  font-size: var(--fs-small);
+  color: var(--fg-faint);
+  margin: 0;
+}

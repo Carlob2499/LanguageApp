@@ -1,0 +1,58 @@
+.stage {
+  display: grid;
+  gap: var(--sp-3);
+  justify-items: center;
+  width: 100%;
+}
+
+.scene {
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  aspect-ratio: 1;
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 35%, rgb(217 164 65 / 0.1), transparent 55%),
+    linear-gradient(170deg, #35191a, var(--bg-raised) 45%, #1f0e0c);
+  border: 1px solid rgb(243 237 227 / 0.08);
+  box-shadow: 0 24px 48px -28px rgb(0 0 0 / 0.9);
+}
+
+html[data-theme='light'] .scene {
+  background: linear-gradient(170deg, #fffaf1, var(--bg-raised) 45%, #efe6d8);
+}
+
+.scene canvas {
+  display: block;
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--fg-faint);
+  margin: 0;
+}
+
+.caption {
+  position: absolute;
+  inset-inline: 0;
+  bottom: var(--sp-2);
+  margin: 0;
+  text-align: center;
+  font-size: var(--fs-small);
+  color: var(--fg-muted);
+  pointer-events: none;
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.6);
+}
+
+html[data-theme='light'] .caption {
+  text-shadow: none;
+}
+
+.tools {
+  display: flex;
+  gap: var(--sp-2);
+}

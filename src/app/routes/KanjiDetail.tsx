@@ -1,17 +1,28 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
+import { AssemblyStage } from '@/app/components/assembly/AssemblyStage'
 import { Button } from '@/app/components/Button'
 import { Furigana } from '@/app/components/Furigana'
 import { Icon } from '@/app/components/Icon'
+import { MemoryAid } from '@/app/components/MemoryAid'
 import { Speak } from '@/app/components/Speak'
 import { StrokeGlyph } from '@/app/components/StrokeGlyph'
+import { Trace } from '@/app/components/Trace'
 import { Link, useParams } from '@/app/router/index'
 import { LEVELS, type Level } from '@/packs/ja/levels'
-import { loadKanji, loadSentences, loadVocab, strokesFor } from '@/packs/ja/loader'
+import { findKanjiUsing, loadKanji, loadSentences, loadVocab, strokesFor } from '@/packs/ja/loader'
 import { displayForm, primaryGloss, readingsFor } from '@/packs/ja/cards'
 import type { KanjiItem, SentenceItem, StrokeItem, VocabItem } from '@/packs/ja/types'
 
 import styles from './KanjiDetail.module.css'
+
+type Mode = 'strokes' | 'trace' | 'assemble'
+
+const MODES: Array<{ id: Mode; label: string; icon: 'strokes' | 'parts' | 'spark' }> = [
+  { id: 'strokes', label: 'Strokes', icon: 'strokes' },
+  { id: 'trace', label: 'Trace', icon: 'spark' },
+  { id: 'assemble', label: 'Assemble', icon: 'parts' },
+]
 
 interface Loaded {
   kanji: KanjiItem
@@ -51,6 +62,9 @@ export function KanjiDetailRoute() {
   const [replay, setReplay] = useState(0)
   const [numbers, setNumbers] = useState(false)
   const [highlight, setHighlight] = useState<number>()
+  const [mode, setMode] = useState<Mode>('strokes')
+  const stageRef = useRef<HTMLDivElement>(null)
+  const [alsoIn, setAlsoIn] = useState<Array<{ kanji: KanjiItem; level: Level }>>([])
 
   useEffect(() => {
     let cancelled = false
@@ -60,7 +74,29 @@ export function KanjiDetailRoute() {
     }
   }, [char])
 
+  useEffect(() => {
+    // The tracing surface needs the whole square on screen, clear of the tab bar.
+    if (mode === 'strokes') return
+    const id = window.setTimeout(() => {
+      stageRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }, 50)
+    return () => window.clearTimeout(id)
+  }, [mode])
+
   const data = loaded?.char === char ? loaded.data : undefined
+  const selectedPart =
+    highlight === undefined ? undefined : data?.strokes?.groups[highlight]?.element
+
+  useEffect(() => {
+    if (!selectedPart) return
+    let cancelled = false
+    void findKanjiUsing(selectedPart, { exclude: char, limit: 10 }).then((list) => {
+      if (!cancelled) setAlsoIn(list)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [selectedPart, char])
   if (data === undefined) {
     return (
       <p className={styles.muted} role="status">
@@ -159,6 +195,42 @@ export function KanjiDetailRoute() {
         </div>
       </div>
 
+      {strokes && (
+        <section className={styles.study} aria-label="Ways to study this kanji">
+          <div className={styles.modes} role="radiogroup" aria-label="Study mode">
+            {MODES.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                role="radio"
+                aria-checked={mode === m.id}
+                className={styles.mode}
+                onClick={() => setMode(m.id)}
+              >
+                <Icon name={m.icon} size={16} />
+                {m.label}
+              </button>
+            ))}
+          </div>
+          {mode === 'trace' && (
+            <div className={styles.stage} ref={stageRef}>
+              <Trace item={strokes} />
+            </div>
+          )}
+          {mode === 'assemble' && (
+            <div className={styles.stage} ref={stageRef}>
+              <AssemblyStage item={strokes} highlighted={highlight} onSelect={setHighlight} />
+            </div>
+          )}
+          {mode === 'strokes' && (
+            <p className={styles.muted}>
+              Tap the kanji to watch it write itself. Trace it with a finger, or take it apart into
+              its components.
+            </p>
+          )}
+        </section>
+      )}
+
       {(groups.length > 0 || kanji.components.length > 0) && (
         <section className={styles.block} aria-labelledby="parts-title">
           <h2 id="parts-title" className={styles.blockTitle}>
@@ -192,8 +264,38 @@ export function KanjiDetailRoute() {
                 </span>
               ))}
           </div>
+          {selectedPart && alsoIn.length > 0 && (
+            <div className={styles.alsoIn}>
+              <p className={styles.alsoInTitle}>
+                <span lang="ja">{selectedPart}</span> also appears in
+              </p>
+              <ul className={styles.alsoInList} role="list">
+                {alsoIn.map(({ kanji: k, level }) => (
+                  <li key={k.char}>
+                    <Link
+                      to={`/kanji/${encodeURIComponent(k.char)}`}
+                      className={styles.alsoInItem}
+                      aria-label={`${k.char}, ${k.meanings[0] ?? ''}, ${level}`}
+                    >
+                      <span lang="ja" className={styles.alsoInChar}>
+                        {k.char}
+                      </span>
+                      <span className={styles.alsoInMeaning}>{k.meanings[0]}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </section>
       )}
+
+      <section className={styles.block} aria-labelledby="aid-title">
+        <h2 id="aid-title" className={styles.blockTitle}>
+          <Icon name="spark" size={18} /> Remember it
+        </h2>
+        <MemoryAid itemId={kanji.id} char={kanji.char} />
+      </section>
 
       {words.length > 0 && (
         <section className={styles.block} aria-labelledby="words-title">

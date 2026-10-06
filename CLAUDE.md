@@ -29,8 +29,11 @@ Installable PWA for learning Japanese kanji and vocabulary from kana to JLPT N1.
 
 - Playwright: this cloud VM has Chromium preinstalled under `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers` (build 1194; the config falls back to it when Playwright's own build is missing). WebKit works after `npx playwright install webkit && npx playwright install-deps webkit`; then run `PW_WEBKIT=1 npm run test:e2e`.
 - Never `pkill -f "vite preview"` from a shell whose own command line contains that string; use `ps -eo pid,args | grep '[v]ite preview'`.
+- Lighthouse runs before the e2e suite in `verify` on purpose: right after Playwright's two workers finish, this VM is still busy enough to add 300–400 ms to the simulated LCP (2.2 s idle vs 2.6 s straight after e2e).
 - Stale preview: `npm run lighthouse` refuses to start while anything answers on port 4174, because it would measure that server instead of the fresh build. Find it with the `ps` line above and `kill <pid>` (never from a command that itself contains the pattern).
 - Vercel: `vercel.json` carries the CSP, cache headers and the SPA rewrite. `sw.js` and `index.html` are `max-age=0`.
 - ts-fsrs cards serialise `Date`s as ISO strings; rehydrate on load.
+- three is pinned to 0.182.0 on purpose: 0.183+ logs a `THREE.Clock` deprecation warning from inside react-three-fiber 9.8, and the console must stay clean. Bump both together once r3f moves to `Timer`.
+- Tracing and the 3D scene work on points from `src/engine/stroke-path.ts`, never `getPointAtLength`, so tests run in Node and e2e can sample strokes from the pack file.
 - iOS Safari: no `beforeinstallprompt`, no Vibration API, speech voices may arrive late (`voiceschanged`).
 - Don't delete old hashed assets before clients update (Safari unregisters a worker whose script 404s).

@@ -91,6 +91,10 @@ export default defineConfig({
               test: /node_modules[\\/](react|react-dom|scheduler|zustand|use-sync-external-store)[\\/]/,
             },
             { name: 'db', test: /node_modules[\\/](dexie|dexie-react-hooks)[\\/]/ },
+            {
+              name: 'three',
+              test: /node_modules[\\/](three|@react-three|react-reconciler|its-fine|suspend-react|react-use-measure)[\\/]/,
+            },
             { name: 'srs', test: /node_modules[\\/]ts-fsrs[\\/]/ },
             {
               name: 'motion',

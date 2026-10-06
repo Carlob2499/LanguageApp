@@ -1,0 +1,147 @@
+.trace {
+  display: grid;
+  gap: var(--sp-3);
+  justify-items: center;
+}
+
+.surface {
+  width: 100%;
+  max-width: 24rem;
+  aspect-ratio: 1;
+  display: block;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: crosshair;
+  border-radius: var(--radius-l);
+  background:
+    radial-gradient(circle at 50% 40%, rgb(217 164 65 / 0.08), transparent 60%),
+    linear-gradient(170deg, #35191a, var(--bg-raised) 45%, #1f0e0c);
+  border: 1px solid rgb(243 237 227 / 0.08);
+  box-shadow: 0 24px 48px -28px rgb(0 0 0 / 0.9);
+  overflow: visible;
+}
+
+html[data-theme='light'] .surface {
+  background: linear-gradient(170deg, #fffaf1, var(--bg-raised) 45%, #efe6d8);
+}
+
+.surface path,
+.surface circle {
+  pointer-events: none;
+}
+
+.guide,
+.guideCurrent,
+.doneStroke,
+.skippedStroke,
+.hint,
+.live,
+.miss {
+  fill: none;
+  stroke-width: 5.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.guide {
+  stroke: var(--fg);
+  opacity: 0.14;
+}
+
+.guideCurrent {
+  stroke: var(--fg);
+  opacity: 0.38;
+  stroke-dasharray: 2 3;
+}
+
+.doneStroke {
+  stroke: var(--accent-text, var(--k-gold));
+}
+
+.skippedStroke {
+  stroke: var(--fg-faint);
+}
+
+.hint {
+  stroke: var(--k-gold-dim);
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: hint 900ms cubic-bezier(0.3, 0.7, 0.2, 1) forwards;
+}
+
+@keyframes hint {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.live {
+  stroke: var(--fg);
+  stroke-width: 6;
+  opacity: 0.95;
+}
+
+.miss {
+  stroke: var(--k-shu);
+  stroke-width: 6;
+  animation: fade 600ms ease-out forwards;
+}
+
+@keyframes fade {
+  to {
+    opacity: 0;
+  }
+}
+
+.startDot {
+  fill: var(--k-gold);
+  animation: pulse 1.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(1.5);
+    opacity: 0.6;
+  }
+}
+
+.status {
+  color: var(--fg-muted);
+  min-height: 1.5em;
+  text-align: center;
+}
+
+.trace[data-done='true'] .status {
+  color: var(--accent-text, var(--k-gold));
+}
+
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-2);
+}
+
+.memoryToggle[aria-pressed='true'] {
+  color: var(--accent-text, var(--k-gold));
+  border-color: rgb(217 164 65 / 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .startDot {
+    animation: none;
+  }
+
+  .miss {
+    animation: none;
+    opacity: 0.6;
+  }
+}

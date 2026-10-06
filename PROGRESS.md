@@ -8,7 +8,7 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - [x] M1 Prototype, built and pushed (2026-10-06); waiting on the Vercel import for the iPhone check
 - [x] M2 Full content pipeline + design overhaul (2026-10-06)
 - [x] M3 Learning engine (2026-10-06)
-- [ ] M4 Kanji study depth
+- [x] M4 Kanji study depth (2026-10-06)
 - [ ] M5 Desktop
 - [ ] M6 PWA hardening and sync
 - [ ] M7 Verify, review, hand off
@@ -56,6 +56,16 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - Screenshot review (reports/screenshots/m3): the kana table listed や/ゆ/よ/ん inside the a-row because the row derivation stripped a trailing y from every Unicode name, fixed in the pipeline and packs rebuilt; the tab bar now hides during placement; the placement answer buttons no longer wrap; the kana-first Today screen spotlights a kana instead of a kanji.
 - Performance: the entry stylesheet is inlined into index.html by a small Vite plugin (one render-blocking round trip fewer); the Lighthouse script now spawns Vite's own binary so the preview dies with the script, refuses to run while port 4174 is occupied (a stale server had been serving older builds and made LCP numbers drift by 350 ms), and takes the median of five runs. Verify on this VM: performance 0.97, LCP 2232 ms, CLS 0.01, TBT 15 ms.
 - Deferred: FSRS seeding from placement answers (the plan said seed only claimed-known items with low stability; v1 sets the level only), leech prompts beyond the 8-lapse flag, picture mnemonics for kana.
+
+### 2026-10-06 — M4 Kanji study depth
+
+- Engine: `stroke-path.ts` flattens KanjiVG paths (M, C/c, S/s) into points without the DOM; `tracing.ts` matches a drawn polyline against a stroke (resampled mean distance, start/end distance, length ratio, and a reversed-fit check so backwards strokes are named as such) with a small reducer for the stroke-by-stroke session. 13 unit tests.
+- Trace mode on the kanji screen: finger or mouse tracing over the guide, gold snap on a hit, red fade on a miss, the stroke draws itself as a hint after two misses or on "Show me", "Skip stroke", and "From memory" hides the guide. Gold flecks when the character is complete. The stage scrolls itself clear of the tab bar.
+- Assemble mode: a lazy react-three-fiber scene (three pinned at 0.182.0, the last release before the Clock deprecation warning that r3f 9.8 triggers) renders each KanjiVG component as lacquered tubes with clearcoat; pieces float apart along the line from the glyph centre with depth spread, assemble on their own after a moment, scrub with a sideways drag, and a tap names the piece and lights it in the hero. Rendering pauses off-screen (IntersectionObserver). The flat equivalent (each part on its own, + … = whole) is the default under reduced motion, without WebGL2 or on devices reporting under 4 GB, and one tap away otherwise. Chunk budget: three + r3f + scene 235 kB gzip, lazy (limit 260).
+- Component graph: selecting a part lists other kanji that use it ("寺 also appears in 持, 特, 待…"), matched through KRADFILE directly or, when KRADFILE only lists primitives, through the part's own decomposition.
+- Memory aid: a per-kanji note in a new Dexie `notes` table (schema v2, included in backups), labelled "Memory aid (yours)", never pre-filled.
+- Tests: 63 unit, 18 e2e (tracing with synthetic pointer paths sampled from the pack, 3D-or-flat render, reduced-motion fallback with axe, memory aid across reload). Screenshots in reports/screenshots/m4 (dark, plus reduced-motion fallback).
+- Deferred to M5: keyboard shortcuts for the modes (T/A), the richer desktop scene (environment reflections, hover highlights across panes).
 
 ## Spot-checks
 

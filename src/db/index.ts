@@ -20,11 +20,19 @@ export interface ReviewRow extends ReviewRecord {
   id?: number
 }
 
+/** A learner's own memory aid for an item. Never pre-filled by the app. */
+export interface NoteRow {
+  itemId: string
+  text: string
+  updatedAt: number
+}
+
 export class KintsugiDB extends Dexie {
   cards!: EntityTable<StudyCard, 'key'>
   reviews!: EntityTable<ReviewRow, 'id'>
   settings!: EntityTable<SettingRow, 'key'>
   days!: EntityTable<DayStatRow, 'day'>
+  notes!: EntityTable<NoteRow, 'itemId'>
 
   constructor(name = 'kintsugi') {
     super(name)
@@ -34,6 +42,7 @@ export class KintsugiDB extends Dexie {
       settings: 'key',
       days: 'day',
     })
+    this.version(2).stores({ notes: 'itemId' })
   }
 }
 

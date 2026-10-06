@@ -22,6 +22,12 @@
     "gzip": true
   },
   {
+    "name": "3D assembly scene: three, react-three-fiber and the scene (gzip, lazy)",
+    "path": ["dist/assets/three-*.js", "dist/assets/Assembly-*.js"],
+    "limit": "260 kB",
+    "gzip": true
+  },
+  {
     "name": "HTML shell with the entry CSS inlined (gzip)",
     "path": ["dist/index.html"],
     "limit": "24 kB",

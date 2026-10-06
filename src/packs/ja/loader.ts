@@ -121,3 +121,31 @@ export async function findKanji(
   }
   return undefined
 }
+
+/**
+ * Kanji on any level list that use `component`, most common first. KRADFILE lists primitive
+ * parts, so a KanjiVG element such as 寺 is matched directly when KRADFILE names it, otherwise
+ * through its own parts: kanji whose decomposition contains every part of the element.
+ */
+export async function findKanjiUsing(
+  component: string,
+  options: { exclude?: string; limit?: number } = {},
+): Promise<Array<{ kanji: KanjiItem; level: Level }>> {
+  const all: Array<{ kanji: KanjiItem; level: Level }> = []
+  for (const level of LEVELS) {
+    for (const kanji of await loadKanji(level)) {
+      if (kanji.char !== options.exclude) all.push({ kanji, level })
+    }
+  }
+  let out = all.filter(({ kanji }) => kanji.components.includes(component))
+  if (out.length === 0) {
+    const parts = all.find(({ kanji }) => kanji.char === component)?.kanji.components ?? []
+    if (parts.length >= 2) {
+      out = all.filter(
+        ({ kanji }) => kanji.char !== component && parts.every((p) => kanji.components.includes(p)),
+      )
+    }
+  }
+  out.sort((a, b) => (a.kanji.freq ?? 9999) - (b.kanji.freq ?? 9999))
+  return out.slice(0, options.limit ?? 12)
+}
