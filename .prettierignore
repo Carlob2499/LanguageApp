@@ -1,0 +1,10 @@
+node_modules
+dist
+dev-dist
+reports
+test-results
+playwright-report
+public/packs
+data/raw
+docs/research
+package-lock.json

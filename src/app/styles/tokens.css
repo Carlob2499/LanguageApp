@@ -1,0 +1,154 @@
+/* Kintsugi design tokens. Every text/background pair used in the UI is asserted in tokens.test.ts. */
+:root {
+  color-scheme: dark light;
+
+  /* Lacquer (dark) */
+  --k-lacquer: #1c0d0b;
+  --k-lacquer-raised: #2a1512;
+  --k-lacquer-sunken: #140908;
+  --k-bone: #f3ede3;
+  --k-bone-muted: #c9bfb2;
+  --k-bone-faint: #a69b8e;
+  --k-gold: #d9a441;
+  --k-gold-dim: #b8892f;
+  --k-celadon: #7fb3a3;
+  --k-shu: #e34234;
+  --k-shu-text: #f06a5c;
+  --k-bengara: #9a2f1e;
+
+  /* Paper (light) */
+  --k-paper: #f6f1e7;
+  --k-paper-raised: #fffaf1;
+  --k-paper-sunken: #ebe3d6;
+  --k-ink: #1c0d0b;
+  --k-ink-muted: #5a4a44;
+  --k-ink-faint: #6a5b55;
+  --k-shu-ink: #b5301f;
+  --k-celadon-ink: #2c6655;
+
+  /* Semantic, dark by default */
+  --bg: var(--k-lacquer);
+  --bg-raised: var(--k-lacquer-raised);
+  --bg-sunken: var(--k-lacquer-sunken);
+  --fg: var(--k-bone);
+  --fg-muted: var(--k-bone-muted);
+  --fg-faint: var(--k-bone-faint);
+  --accent: var(--k-gold);
+  --accent-fg: var(--k-lacquer);
+  --accent-dim: var(--k-gold-dim);
+  --success: var(--k-celadon);
+  --success-fg: var(--k-lacquer);
+  --danger: var(--k-shu);
+  --danger-fg: var(--k-lacquer);
+  --danger-text: var(--k-shu-text);
+  --surface-accent: var(--k-bengara);
+  --surface-accent-fg: var(--k-bone);
+  --hairline: rgb(243 237 227 / 0.12);
+  --glass: rgb(42 21 18 / 0.72);
+  --focus: var(--k-gold);
+
+  /* Type */
+  --font-latin: 'Instrument Sans', 'Zen Kaku Gothic New', 'Hiragino Sans', system-ui, sans-serif;
+  --font-latin-display:
+    'Fraunces Variable', 'Shippori Mincho', 'Hiragino Mincho ProN', Georgia, serif;
+  --font-ja:
+    'Zen Kaku Gothic New', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic',
+    'Noto Sans CJK JP', sans-serif;
+  --font-ja-display:
+    'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif;
+
+  --fs-caption: 0.75rem;
+  --fs-small: 0.875rem;
+  --fs-body: 1rem;
+  --fs-subhead: 1.25rem;
+  --fs-h3: 1.5625rem;
+  --fs-h2: 1.953rem;
+  --fs-h1: 2.441rem;
+  --fs-hero: clamp(5.5rem, 28vw, 10rem);
+
+  --lh-tight: 1.1;
+  --lh-heading: 1.35;
+  --lh-body: 1.5;
+  --lh-ja: 1.7;
+
+  /* Space (rem so text-size settings scale layout) */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+
+  --radius-s: 0.5rem;
+  --radius-m: 1rem;
+  --radius-l: 1.5rem;
+  --tap: 2.75rem; /* 44px minimum target */
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  --spring-default: 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --spring-viscous: 450ms cubic-bezier(0.3, 0.9, 0.2, 1);
+}
+
+html[data-theme='light'],
+:root:not([data-theme='dark']) {
+  @media (prefers-color-scheme: light) {
+    --bg: var(--k-paper);
+    --bg-raised: var(--k-paper-raised);
+    --bg-sunken: var(--k-paper-sunken);
+    --fg: var(--k-ink);
+    --fg-muted: var(--k-ink-muted);
+    --fg-faint: var(--k-ink-faint);
+    --accent: var(--k-gold);
+    --accent-fg: var(--k-ink);
+    --accent-dim: var(--k-gold-dim);
+    --success: var(--k-celadon-ink);
+    --success-fg: var(--k-paper);
+    --danger: var(--k-shu-ink);
+    --danger-fg: var(--k-paper);
+    --danger-text: var(--k-shu-ink);
+    --surface-accent: var(--k-bengara);
+    --surface-accent-fg: var(--k-bone);
+    --hairline: rgb(28 13 11 / 0.14);
+    --glass: rgb(255 250 241 / 0.78);
+    --focus: var(--k-bengara);
+  }
+}
+
+html[data-theme='light'] {
+  --bg: var(--k-paper);
+  --bg-raised: var(--k-paper-raised);
+  --bg-sunken: var(--k-paper-sunken);
+  --fg: var(--k-ink);
+  --fg-muted: var(--k-ink-muted);
+  --fg-faint: var(--k-ink-faint);
+  --accent: var(--k-gold);
+  --accent-fg: var(--k-ink);
+  --accent-dim: var(--k-gold-dim);
+  --success: var(--k-celadon-ink);
+  --success-fg: var(--k-paper);
+  --danger: var(--k-shu-ink);
+  --danger-fg: var(--k-paper);
+  --danger-text: var(--k-shu-ink);
+  --surface-accent: var(--k-bengara);
+  --surface-accent-fg: var(--k-bone);
+  --hairline: rgb(28 13 11 / 0.14);
+  --glass: rgb(255 250 241 / 0.78);
+  --focus: var(--k-bengara);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass: var(--bg-raised);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --hairline: currentColor;
+  }
+}

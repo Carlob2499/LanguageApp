@@ -1,0 +1,49 @@
+import js from '@eslint/js'
+import prettier from 'eslint-config-prettier'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
+
+export default tseslint.config(
+  {
+    ignores: [
+      'node_modules',
+      'dist',
+      'dev-dist',
+      'reports',
+      'test-results',
+      'playwright-report',
+      'public/packs',
+      'data/raw',
+    ],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    languageOptions: { globals: { ...globals.browser, ...globals.serviceworker } },
+    plugins: { 'react-hooks': reactHooks, 'react-refresh': reactRefresh },
+    rules: {
+      ...reactHooks.configs['recommended-latest'].rules,
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+    },
+  },
+  {
+    files: ['scripts/**/*.{ts,mjs}', 'e2e/**/*.ts', 'api/**/*.ts', '*.config.ts'],
+    languageOptions: { globals: { ...globals.node } },
+  },
+  {
+    files: ['**/*.{js,mjs}'],
+    ...tseslint.configs.disableTypeChecked,
+  },
+  prettier,
+)

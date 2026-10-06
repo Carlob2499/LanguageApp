@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Kintsugi">
+  <defs>
+    <linearGradient id="lacquer" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2A1512"/>
+      <stop offset="1" stop-color="#1C0D0B"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F0C56B"/>
+      <stop offset="0.5" stop-color="#D9A441"/>
+      <stop offset="1" stop-color="#B8892F"/>
+    </linearGradient>
+    <radialGradient id="gloss" cx="0.3" cy="0.2" r="0.8">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="0.6" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#lacquer)"/>
+  <rect width="512" height="512" rx="112" fill="url(#gloss)"/>
+  <path d="M96 420 C150 380 170 330 200 300 C230 270 260 262 262 232 C264 200 232 180 240 150 C248 118 300 100 330 80"
+        fill="none" stroke="url(#gold)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M262 232 C300 240 330 250 360 290 C384 322 400 350 428 376"
+        fill="none" stroke="url(#gold)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M200 300 C180 330 160 340 140 380" fill="none" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,20 @@
+[
+  {
+    "name": "initial JS (entry + vendor chunks, gzip)",
+    "path": [
+      "dist/assets/index-*.js",
+      "dist/assets/vendor-*.js",
+      "dist/assets/db-*.js",
+      "dist/assets/srs-*.js",
+      "dist/assets/motion-*.js"
+    ],
+    "limit": "180 kB",
+    "gzip": true
+  },
+  {
+    "name": "initial CSS (gzip)",
+    "path": ["dist/assets/index-*.css"],
+    "limit": "24 kB",
+    "gzip": true
+  }
+]

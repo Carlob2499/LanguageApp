@@ -1,0 +1,18 @@
+.about {
+  display: grid;
+  gap: var(--sp-4);
+  padding-block: var(--sp-6);
+}
+
+.lede {
+  color: var(--fg-muted);
+  max-width: 36rem;
+}
+
+.note {
+  padding: var(--sp-3) var(--sp-4);
+  border-left: 3px solid var(--accent);
+  background: var(--bg-raised);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  max-width: 36rem;
+}

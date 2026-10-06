@@ -1,0 +1,28 @@
+.today {
+  display: grid;
+  gap: var(--sp-4);
+  padding-block: var(--sp-6);
+}
+
+.eyebrow {
+  font-size: var(--fs-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.lede {
+  color: var(--fg-muted);
+  max-width: 36rem;
+  font-size: var(--fs-subhead);
+  line-height: var(--lh-body);
+}
+
+.mark {
+  font-size: var(--fs-hero);
+  color: var(--accent);
+  margin-top: var(--sp-6);
+  font-weight: 700;
+  text-wrap: nowrap;
+}
