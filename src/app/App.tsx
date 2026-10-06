@@ -1,7 +1,14 @@
-import { RouterProvider } from '@tanstack/react-router'
+import { useEffect } from 'react'
 
-import { router } from '@/app/router'
+import { AppRouter } from '@/app/router'
+import { useSettings } from '@/app/study/settings'
 
 export function App() {
-  return <RouterProvider router={router} />
+  const loaded = useSettings((s) => s.loaded)
+  const load = useSettings((s) => s.load)
+  useEffect(() => {
+    void load()
+  }, [load])
+  if (!loaded) return null
+  return <AppRouter />
 }

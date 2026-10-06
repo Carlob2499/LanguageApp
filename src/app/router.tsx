@@ -1,38 +1,40 @@
-import { createRootRoute, createRoute, createRouter, Outlet } from '@tanstack/react-router'
-
+/* eslint-disable react-refresh/only-export-components -- route table lives beside the app router component */
 import { Shell } from '@/app/components/Shell'
+import { Router, type RouteDefinition } from '@/app/router/index'
 import { AboutRoute } from '@/app/routes/About'
-import { TodayRoute } from '@/app/routes/Today'
+import { NotFoundRoute } from '@/app/routes/NotFound'
+import { WelcomeRoute } from '@/app/routes/Welcome'
+import { useSettings } from '@/app/study/settings'
 
-const rootRoute = createRootRoute({
-  component: () => (
-    <Shell>
-      <Outlet />
-    </Shell>
-  ),
-})
+const requireOnboarding = () => (useSettings.getState().settings.onboarded ? undefined : '/welcome')
 
-const todayRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/',
-  component: TodayRoute,
-})
-const aboutRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/about',
-  component: AboutRoute,
-})
+export const routes: RouteDefinition[] = [
+  {
+    path: '/',
+    guard: requireOnboarding,
+    load: () => import('@/app/routes/Today'),
+    exportName: 'TodayRoute',
+  },
+  {
+    path: '/review',
+    guard: requireOnboarding,
+    load: () => import('@/app/routes/Review'),
+    exportName: 'ReviewRoute',
+  },
+  {
+    path: '/library',
+    guard: requireOnboarding,
+    load: () => import('@/app/routes/Library'),
+    exportName: 'LibraryRoute',
+  },
+  { path: '/about', component: AboutRoute },
+  {
+    path: '/welcome',
+    guard: () => (useSettings.getState().settings.onboarded ? '/' : undefined),
+    component: WelcomeRoute,
+  },
+]
 
-const routeTree = rootRoute.addChildren([todayRoute, aboutRoute])
-
-export const router = createRouter({
-  routeTree,
-  defaultPreload: 'intent',
-  scrollRestoration: true,
-})
-
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router
-  }
+export function AppRouter() {
+  return <Router routes={routes} notFound={NotFoundRoute} layout={Shell} />
 }

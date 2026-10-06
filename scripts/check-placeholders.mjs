@@ -13,8 +13,8 @@ const scanDirs = [
   'REAL-DEVICE-CHECKLIST.md',
 ]
 const skipDirs = new Set(['node_modules', 'dist', 'dev-dist', 'packs', 'icons'])
-const patterns = [/lorem/i, /\bTODO\b/, /\bTBD\b/, /placeholder(?!=)/i]
-// `placeholder=` is the HTML attribute, which is legitimate copy for inputs.
+// `placeholder=` is the HTML attribute and `::placeholder` its CSS pseudo-element; both are legitimate.
+const patterns = [/lorem/i, /\bTODO\b/, /\bTBD\b/, /(?<!:)placeholder(?!=)/i]
 const allowFiles = new Set(['scripts/check-placeholders.mjs'])
 
 const offenders = []

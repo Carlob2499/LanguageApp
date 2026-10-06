@@ -1,14 +1,24 @@
 [
   {
-    "name": "initial JS (entry + vendor chunks, gzip)",
+    "name": "initial JS: entry + preloaded chunks (gzip)",
     "path": [
       "dist/assets/index-*.js",
       "dist/assets/vendor-*.js",
-      "dist/assets/db-*.js",
-      "dist/assets/srs-*.js",
-      "dist/assets/motion-*.js"
+      "dist/assets/rolldown-runtime-*.js",
+      "dist/assets/workbox-window*.js"
     ],
     "limit": "180 kB",
+    "gzip": true
+  },
+  {
+    "name": "review route chunk incl. Motion, FSRS and Dexie (gzip, lazy)",
+    "path": [
+      "dist/assets/Review-*.js",
+      "dist/assets/motion-*.js",
+      "dist/assets/srs-*.js",
+      "dist/assets/db-*.js"
+    ],
+    "limit": "120 kB",
     "gzip": true
   },
   {
@@ -16,5 +26,19 @@
     "path": ["dist/assets/index-*.css"],
     "limit": "24 kB",
     "gzip": true
+  },
+  {
+    "name": "fonts for a first N5 session: base + N5 slices, three faces (raw woff2 bytes)",
+    "path": [
+      "dist/fonts/zkgn-400-base.woff2",
+      "dist/fonts/zkgn-700-base.woff2",
+      "dist/fonts/shippori-700-base.woff2",
+      "dist/fonts/zkgn-400-n5.woff2",
+      "dist/fonts/shippori-700-n5.woff2",
+      "dist/fonts/instrument-sans-*.woff2",
+      "dist/fonts/fraunces-variable.woff2"
+    ],
+    "limit": "400 kB",
+    "brotli": false
   }
 ]

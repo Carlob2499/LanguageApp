@@ -34,6 +34,7 @@
   --fg-muted: var(--k-bone-muted);
   --fg-faint: var(--k-bone-faint);
   --accent: var(--k-gold);
+  --accent-text: var(--k-gold);
   --accent-fg: var(--k-lacquer);
   --accent-dim: var(--k-gold-dim);
   --success: var(--k-celadon);
@@ -104,6 +105,7 @@ html[data-theme='light'],
     --fg-muted: var(--k-ink-muted);
     --fg-faint: var(--k-ink-faint);
     --accent: var(--k-gold);
+    --accent-text: var(--k-bengara);
     --accent-fg: var(--k-ink);
     --accent-dim: var(--k-gold-dim);
     --success: var(--k-celadon-ink);
@@ -127,6 +129,7 @@ html[data-theme='light'] {
   --fg-muted: var(--k-ink-muted);
   --fg-faint: var(--k-ink-faint);
   --accent: var(--k-gold);
+  --accent-text: var(--k-bengara);
   --accent-fg: var(--k-ink);
   --accent-dim: var(--k-gold-dim);
   --success: var(--k-celadon-ink);

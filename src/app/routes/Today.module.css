@@ -1,28 +1,106 @@
 .today {
   display: grid;
   gap: var(--sp-4);
-  padding-block: var(--sp-6);
+  padding-block: var(--sp-5);
+  position: relative;
 }
 
 .eyebrow {
   font-size: var(--fs-caption);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text, var(--k-gold));
   font-weight: 600;
 }
 
 .lede {
   color: var(--fg-muted);
-  max-width: 36rem;
+  max-width: 34rem;
   font-size: var(--fs-subhead);
   line-height: var(--lh-body);
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.5rem;
+  padding: 0 var(--sp-6);
+  border-radius: var(--radius-l);
+  font-weight: 600;
+  font-size: var(--fs-subhead);
+  text-decoration: none;
+  transition: transform 120ms ease-out;
+}
+
+.primary {
+  background: linear-gradient(160deg, #f0c56b, var(--k-gold) 55%, var(--k-gold-dim));
+  color: var(--k-lacquer);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 10px 24px -12px rgb(217 164 65 / 0.55);
+}
+
+.secondary {
+  background: var(--bg-raised);
+  color: var(--fg);
+  border: 1px solid var(--hairline);
+}
+
+.primary:active,
+.secondary:active {
+  transform: scale(0.97);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  gap: var(--sp-6);
+  margin: var(--sp-4) 0 0;
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--hairline);
+}
+
+.stats dt {
+  font-size: var(--fs-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+.stats dd {
+  margin: 0;
+  font-family: var(--font-latin-display);
+  font-size: var(--fs-h2);
+  font-weight: 500;
+  font-variation-settings: 'opsz' 48;
+  color: var(--fg);
+}
+
+.of {
+  font-size: var(--fs-small);
+  color: var(--fg-faint);
+  font-family: var(--font-latin);
 }
 
 .mark {
   font-size: var(--fs-hero);
-  color: var(--accent);
-  margin-top: var(--sp-6);
+  color: var(--accent-text, var(--k-gold));
+  opacity: 0.12;
   font-weight: 700;
   text-wrap: nowrap;
+  justify-self: end;
+  margin-top: var(--sp-6);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
 }

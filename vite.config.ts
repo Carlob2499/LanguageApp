@@ -55,7 +55,7 @@ export default defineConfig({
           groups: [
             {
               name: 'vendor',
-              test: /node_modules[\\/](react|react-dom|scheduler|@tanstack|zustand)[\\/]/,
+              test: /node_modules[\\/](react|react-dom|scheduler|zustand|use-sync-external-store)[\\/]/,
             },
             { name: 'db', test: /node_modules[\\/](dexie|dexie-react-hooks)[\\/]/ },
             { name: 'srs', test: /node_modules[\\/]ts-fsrs[\\/]/ },

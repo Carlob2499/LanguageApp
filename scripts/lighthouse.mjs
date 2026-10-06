@@ -1,6 +1,8 @@
 // Runs Lighthouse (mobile) against the production preview and enforces the plan's budgets.
-import { mkdirSync, writeFileSync } from 'node:fs'
+// Simulated throttling is sensitive to CPU noise on shared machines, so each number is the
+// median of three runs.
 import { spawn } from 'node:child_process'
+import { mkdirSync, writeFileSync } from 'node:fs'
 
 import { launch } from 'chrome-launcher'
 import lighthouse from 'lighthouse'
@@ -9,6 +11,7 @@ import { resolveChromium } from './browser.mjs'
 
 const PORT = 4174
 const URL_UNDER_TEST = `http://127.0.0.1:${PORT}/`
+const RUNS = 3
 const THRESHOLDS = {
   performance: 0.9,
   accessibility: 0.95,
@@ -39,16 +42,9 @@ async function startPreview() {
   throw new Error('preview server did not start within 30s')
 }
 
-const preview = await startPreview()
-const chromePath = resolveChromium()
-const chrome = await launch({
-  chromePath,
-  chromeFlags: ['--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
-})
-
-try {
+async function runOnce(port) {
   const result = await lighthouse(URL_UNDER_TEST, {
-    port: chrome.port,
+    port,
     output: 'json',
     logLevel: 'error',
     onlyCategories: ['performance', 'accessibility', 'best-practices'],
@@ -63,12 +59,25 @@ try {
     throttlingMethod: 'simulate',
   })
   if (!result) throw new Error('Lighthouse returned no result')
-  const { lhr } = result
-  mkdirSync('reports', { recursive: true })
-  writeFileSync('reports/lighthouse.json', JSON.stringify(lhr, null, 2))
+  return result.lhr
+}
 
-  const score = (id) => lhr.categories[id]?.score ?? 0
-  const metric = (id) => lhr.audits[id]?.numericValue ?? Number.POSITIVE_INFINITY
+const preview = await startPreview()
+const chrome = await launch({
+  chromePath: resolveChromium(),
+  chromeFlags: ['--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
+})
+
+try {
+  const runs = []
+  for (let i = 0; i < RUNS; i++) runs.push(await runOnce(chrome.port))
+  mkdirSync('reports', { recursive: true })
+  writeFileSync('reports/lighthouse.json', JSON.stringify(runs[0], null, 2))
+
+  const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)]
+  const score = (id) => median(runs.map((r) => r.categories[id]?.score ?? 0))
+  const metric = (id) =>
+    median(runs.map((r) => r.audits[id]?.numericValue ?? Number.POSITIVE_INFINITY))
   const rows = [
     [
       'performance',
@@ -101,14 +110,13 @@ try {
   for (const [name, value, limit, ok] of rows) {
     const pass = ok(value)
     failed ||= !pass
-    const shown =
-      typeof value === 'number' ? (value <= 1 ? value.toFixed(2) : Math.round(value)) : value
+    const shown = value <= 1 ? value.toFixed(2) : Math.round(value)
     console.log(
-      `${pass ? 'PASS' : 'FAIL'}  ${name.padEnd(16)} ${String(shown).padStart(8)}  (limit ${limit})`,
+      `${pass ? 'PASS' : 'FAIL'}  ${name.padEnd(16)} ${String(shown).padStart(8)}  (limit ${limit}, median of ${RUNS})`,
     )
   }
   if (failed) {
-    console.error('Lighthouse budget failed. Full report: reports/lighthouse.json')
+    console.error('Lighthouse budget failed. First run saved to reports/lighthouse.json')
     process.exitCode = 1
   }
 } finally {

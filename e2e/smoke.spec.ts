@@ -14,10 +14,11 @@ test.describe('app shell', () => {
 
     await page.goto('/')
     await expect(page).toHaveTitle('Kintsugi')
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    // A fresh install lands on the welcome flow.
+    await expect(page).toHaveURL(/\/welcome$/)
+    await expect(page.getByRole('heading', { level: 1, name: 'Kintsugi' })).toBeVisible()
 
-    await page.getByRole('link', { name: 'Sources' }).click()
-    await expect(page).toHaveURL(/\/about$/)
+    await page.goto('/about')
     await expect(page.getByRole('heading', { level: 1, name: 'Sources' })).toBeVisible()
 
     const results = await new AxeBuilder({ page }).analyze()

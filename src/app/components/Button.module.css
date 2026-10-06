@@ -1,0 +1,83 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: var(--tap);
+  padding: 0 var(--sp-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-m);
+  font-weight: 600;
+  font-size: var(--fs-body);
+  letter-spacing: 0.005em;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 120ms ease-out,
+    background-color var(--spring-default),
+    color var(--spring-default),
+    border-color var(--spring-default),
+    box-shadow var(--spring-default);
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+}
+
+.large {
+  min-height: 3.5rem;
+  font-size: var(--fs-subhead);
+  padding-inline: var(--sp-6);
+  border-radius: var(--radius-l);
+}
+
+.primary {
+  background: linear-gradient(160deg, #f0c56b, var(--k-gold) 55%, var(--k-gold-dim));
+  color: var(--k-lacquer);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 10px 24px -12px rgb(217 164 65 / 0.55);
+}
+
+.secondary {
+  background: var(--bg-raised);
+  color: var(--fg);
+  border-color: var(--hairline);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+
+.quiet {
+  background: transparent;
+  color: var(--fg-muted);
+}
+
+.quiet:hover {
+  color: var(--fg);
+}
+
+.danger {
+  background: var(--bg-raised);
+  color: var(--danger-text);
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+}
+
+.success {
+  background: var(--bg-raised);
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 45%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button:active {
+    transform: none;
+  }
+}

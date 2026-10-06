@@ -1,0 +1,124 @@
+.library {
+  display: grid;
+  gap: var(--sp-4);
+  padding-block: var(--sp-5);
+}
+
+.lede {
+  color: var(--fg-muted);
+}
+
+.tabs {
+  display: inline-flex;
+  gap: var(--sp-1);
+  padding: var(--sp-1);
+  border-radius: var(--radius-m);
+  background: var(--bg-sunken);
+  border: 1px solid var(--hairline);
+  width: fit-content;
+}
+
+.tab {
+  min-height: 2.5rem;
+  padding: 0 var(--sp-4);
+  border: 0;
+  border-radius: calc(var(--radius-m) - var(--sp-1));
+  background: transparent;
+  color: var(--fg-muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab[aria-selected='true'] {
+  background: var(--bg-raised);
+  color: var(--fg);
+  box-shadow: inset 0 -2px 0 var(--k-gold);
+}
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: var(--sp-2);
+}
+
+.cell {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-3) var(--sp-2);
+  border-radius: var(--radius-m);
+  background: var(--bg-raised);
+  border: 1px solid var(--hairline);
+  text-align: center;
+}
+
+.glyph {
+  font-size: calc(2.2rem * var(--ja-scale, 1));
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.gloss {
+  font-size: var(--fs-small);
+  color: var(--fg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) 1fr auto;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-m);
+  background: var(--bg-raised);
+  border: 1px solid var(--hairline);
+}
+
+.word {
+  display: grid;
+  font-size: calc(var(--fs-subhead) * var(--ja-scale, 1));
+  font-weight: 500;
+}
+
+.wordReading {
+  font-size: calc(var(--fs-small) * var(--ja-scale, 1));
+  color: var(--fg-muted);
+  font-weight: 400;
+}
+
+.badge {
+  font-size: var(--fs-caption);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+
+.learning {
+  color: var(--fg-muted);
+}
+
+.review {
+  color: var(--accent-text, var(--k-gold));
+}
+
+.relearning {
+  color: var(--danger-text);
+}
