@@ -22,7 +22,8 @@ const LEVEL_BLURB: Record<Level, string> = {
 export function WelcomeRoute() {
   const navigate = useNavigate()
   const update = useSettings((s) => s.update)
-  const [step, setStep] = useState<0 | 1 | 2>(0)
+  const [step, setStep] = useState<0 | 'kana' | 1 | 2>(0)
+  const [readsKana, setReadsKana] = useState<boolean>()
   const [level, setLevel] = useState<Level>('N5')
   const [newPerDay, setNewPerDay] = useState(10)
   const [gold, setGold] = useState<StrokeItem>()
@@ -41,7 +42,12 @@ export function WelcomeRoute() {
   }, [])
 
   async function finish() {
-    await update({ onboarded: true, level, newPerDay })
+    await update({ onboarded: true, level, newPerDay, kanaReady: true })
+    navigate('/')
+  }
+
+  async function finishKanaFirst() {
+    await update({ onboarded: true, level: 'N5', newPerDay: 10, kanaReady: false })
     navigate('/')
   }
 
@@ -107,9 +113,65 @@ export function WelcomeRoute() {
             Kanji and words from kana to N1, one short session a day. Every kanji writes itself in
             front of you, stroke by stroke.
           </p>
-          <Button variant="primary" size="large" onClick={() => setStep(1)}>
+          <Button variant="primary" size="large" onClick={() => setStep('kana')}>
             Start
           </Button>
+        </>
+      )}
+      {step === 'kana' && (
+        <>
+          <p className={styles.eyebrow}>First question</p>
+          <h1>Do you read kana?</h1>
+          <p className={styles.lede}>
+            Hiragana and katakana, the two syllabaries. Everything here is written with them.
+          </p>
+          <div className={styles.options} role="radiogroup" aria-label="Do you read kana?">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={readsKana === false}
+              className={styles.option}
+              onClick={() => setReadsKana(false)}
+            >
+              <span className={styles.optionLevel} lang="ja">
+                あ
+              </span>
+              <span className={styles.optionText}>
+                Not yet. Teach me the sounds first; kanji can wait.
+              </span>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={readsKana === true}
+              className={styles.option}
+              onClick={() => setReadsKana(true)}
+            >
+              <span className={styles.optionLevel} lang="ja">
+                漢
+              </span>
+              <span className={styles.optionText}>
+                Yes. Place me with a short test, or let me pick a level.
+              </span>
+            </button>
+          </div>
+          <div className={styles.buttonRow}>
+            {readsKana === false && (
+              <Button variant="primary" size="large" onClick={() => void finishKanaFirst()}>
+                Begin with kana
+              </Button>
+            )}
+            {readsKana === true && (
+              <>
+                <Button variant="primary" size="large" onClick={() => navigate('/placement')}>
+                  Take the placement test
+                </Button>
+                <Button variant="quiet" size="large" onClick={() => setStep(1)}>
+                  Pick a level myself
+                </Button>
+              </>
+            )}
+          </div>
         </>
       )}
       {step === 1 && (

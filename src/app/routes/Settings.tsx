@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
+import { Button } from '@/app/components/Button'
 import { Icon } from '@/app/components/Icon'
 import { Link } from '@/app/router/index'
+import { restoreProgress, saveProgress } from '@/app/study/backup'
 import { useSettings, type Settings } from '@/app/study/settings'
 import { LEVELS } from '@/packs/ja/levels'
 import { loadIndex } from '@/packs/ja/loader'
@@ -12,6 +14,36 @@ export function SettingsRoute() {
   const settings = useSettings((s) => s.settings)
   const update = useSettings((s) => s.update)
   const [dataDate, setDataDate] = useState<string>()
+  const [backupNote, setBackupNote] = useState<string>()
+  const [pendingFile, setPendingFile] = useState<File>()
+  const fileInput = useRef<HTMLInputElement>(null)
+
+  async function backup() {
+    try {
+      const how = await saveProgress()
+      setBackupNote(
+        how === 'shared'
+          ? 'Backup handed to the share sheet. Save it to Files or iCloud.'
+          : 'Backup downloaded.',
+      )
+    } catch (e) {
+      setBackupNote(`Backup failed: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+
+  async function restore() {
+    if (!pendingFile) return
+    try {
+      const { cards, reviews } = await restoreProgress(pendingFile)
+      setBackupNote(`Restored ${cards} cards and ${reviews} reviews. Reloading…`)
+      await useSettings.getState().load()
+      window.setTimeout(() => window.location.reload(), 800)
+    } catch (e) {
+      setBackupNote(`Restore failed: ${e instanceof Error ? e.message : String(e)}`)
+    } finally {
+      setPendingFile(undefined)
+    }
+  }
 
   useEffect(() => {
     void loadIndex().then((i) => setDataDate(i.generated.slice(0, 10)))
@@ -76,6 +108,75 @@ export function SettingsRoute() {
             value={settings.jaTextScale}
             onChange={(v) => set('jaTextScale', v)}
           />
+        </Row>
+      </Group>
+
+      <Group title="Backup">
+        <Row
+          label="Progress file"
+          hint="Everything on this device: cards, reviews, settings. Keep a copy somewhere safe; Safari can clear site data after a week without a visit."
+        >
+          <div className={styles.buttons}>
+            <Button onClick={() => void backup()}>Save a backup</Button>
+            <Button variant="quiet" onClick={() => fileInput.current?.click()}>
+              Restore from file
+            </Button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="application/json,.json"
+              className="visually-hidden"
+              aria-label="Choose a backup file"
+              onChange={(e) => setPendingFile(e.target.files?.[0])}
+            />
+          </div>
+          {pendingFile && (
+            <div className={styles.confirm} role="alertdialog" aria-labelledby="restore-title">
+              <p id="restore-title">
+                Replace what is on this device with <strong>{pendingFile.name}</strong>? Current
+                progress will be overwritten.
+              </p>
+              <div className={styles.buttons}>
+                <Button variant="danger" onClick={() => void restore()}>
+                  Replace
+                </Button>
+                <Button variant="quiet" onClick={() => setPendingFile(undefined)}>
+                  Keep current
+                </Button>
+              </div>
+            </div>
+          )}
+          {backupNote && (
+            <p className={styles.note} role="status">
+              {backupNote}
+            </p>
+          )}
+        </Row>
+      </Group>
+
+      <Group title="Kana">
+        <Row
+          label="Kana first"
+          hint={
+            settings.kanaReady
+              ? 'Kanji and words are unlocked. Kana still come up in reviews.'
+              : 'Sessions introduce kana before any kanji.'
+          }
+        >
+          <div className={styles.buttons}>
+            <Link to="/kana" className={styles.linkButton}>
+              Open the kana table
+            </Link>
+            {settings.kanaReady ? (
+              <Button variant="quiet" onClick={() => set('kanaReady', false)}>
+                Start kana over
+              </Button>
+            ) : (
+              <Button variant="quiet" onClick={() => set('kanaReady', true)}>
+                I already read kana
+              </Button>
+            )}
+          </div>
         </Row>
       </Group>
 

@@ -5,11 +5,13 @@ import { Icon } from '@/app/components/Icon'
 import { StrokeGlyph } from '@/app/components/StrokeGlyph'
 import { Vessel } from '@/app/components/Vessel'
 import { Link } from '@/app/router/index'
+import { kanaLessonOrder } from '@/app/study/library'
 import { useSettings } from '@/app/study/settings'
 import { useDueCounts } from '@/app/study/useDueCounts'
 import { db, localDay } from '@/db'
-import { loadKanji, strokesFor } from '@/packs/ja/loader'
-import type { KanjiItem, StrokeItem } from '@/packs/ja/types'
+import { loadKana, loadKanji, loadStrokes, strokesFor } from '@/packs/ja/loader'
+import type { Level } from '@/packs/ja/levels'
+import type { KanaItem, KanjiItem, StrokeItem } from '@/packs/ja/types'
 
 import styles from './Today.module.css'
 
@@ -30,11 +32,33 @@ function useStreak(): number {
   )
 }
 
+type Spotlight =
+  | { kind: 'kanji'; kanji: KanjiItem; strokes?: StrokeItem }
+  | { kind: 'kana'; kana: KanaItem; strokes?: StrokeItem }
+
+/** One item per calendar day: a kanji from the current level, or a hiragana while kana come first. */
+async function loadSpotlight(level: Level, kanaReady: boolean): Promise<Spotlight | undefined> {
+  const dayIndex = Math.floor(Date.now() / 86_400_000)
+  if (!kanaReady) {
+    const [kanaList, strokeList] = await Promise.all([loadKana(), loadStrokes('kana')])
+    const order = kanaLessonOrder(kanaList).filter((k) => k.script === 'hiragana')
+    const kana = order[dayIndex % Math.max(1, order.length)]
+    if (!kana) return undefined
+    const strokes = strokeList.find((s) => s.char === kana.char)
+    return strokes ? { kind: 'kana', kana, strokes } : { kind: 'kana', kana }
+  }
+  const list = await loadKanji(level)
+  const kanji = list[dayIndex % Math.max(1, list.length)]
+  if (!kanji) return undefined
+  const strokes = await strokesFor(kanji.char, level)
+  return strokes ? { kind: 'kanji', kanji, strokes } : { kind: 'kanji', kanji }
+}
+
 export function TodayRoute() {
   const counts = useDueCounts()
   const settings = useSettings((s) => s.settings)
   const streak = useStreak()
-  const [daily, setDaily] = useState<{ kanji: KanjiItem; strokes?: StrokeItem }>()
+  const [daily, setDaily] = useState<Spotlight>()
   const newLeft = Math.max(0, settings.newPerDay - (counts?.today.newIntroduced ?? 0))
   const due = counts?.due ?? 0
   const done = counts?.today.reviewsDone ?? 0
@@ -44,23 +68,21 @@ export function TodayRoute() {
 
   useEffect(() => {
     let cancelled = false
-    void loadKanji(settings.level).then(async (list) => {
-      if (list.length === 0) return
-      const dayIndex = Math.floor(Date.now() / 86_400_000)
-      const kanji = list[dayIndex % list.length]!
-      const strokes = await strokesFor(kanji.char, settings.level)
-      if (!cancelled) setDaily(strokes ? { kanji, strokes } : { kanji })
+    void loadSpotlight(settings.level, settings.kanaReady).then((s) => {
+      if (!cancelled && s) setDaily(s)
     })
     return () => {
       cancelled = true
     }
-  }, [settings.level])
+  }, [settings.level, settings.kanaReady])
 
   return (
     <section className={styles.today} aria-labelledby="today-title">
       <header className={styles.top}>
         <div>
-          <p className={styles.eyebrow}>Today · {settings.level}</p>
+          <p className={styles.eyebrow}>
+            Today · {settings.kanaReady ? settings.level : 'Kana first'}
+          </p>
           <h1 id="today-title">
             {counts === undefined
               ? 'Setting the table…'
@@ -89,6 +111,11 @@ export function TodayRoute() {
               : 'Come back tomorrow, or wander the library in the meantime.'}
       </p>
       <div className={styles.actions}>
+        {!settings.kanaReady && (
+          <Link to="/kana" className={styles.secondary}>
+            Kana table
+          </Link>
+        )}
         {hasWork ? (
           <Link to="/review" className={styles.primary}>
             {due > 0 ? 'Start reviewing' : 'Learn new cards'}
@@ -123,7 +150,7 @@ export function TodayRoute() {
         </div>
       </dl>
 
-      {daily && (
+      {daily && daily.kind === 'kanji' && (
         <Link
           to={`/kanji/${encodeURIComponent(daily.kanji.char)}`}
           className={styles.daily}
@@ -145,6 +172,32 @@ export function TodayRoute() {
               {[...daily.kanji.on.slice(0, 2), ...daily.kanji.kun.slice(0, 2)].join('　')}
             </p>
             <p className={styles.dailyStrokes}>{daily.kanji.strokes} strokes · tap to study</p>
+          </div>
+        </Link>
+      )}
+      {daily && daily.kind === 'kana' && (
+        <Link
+          to="/kana"
+          className={styles.daily}
+          aria-label={`Kana of the day: ${daily.kana.char}, ${daily.kana.romaji}`}
+        >
+          <div className={styles.dailyGlyph}>
+            {daily.strokes ? (
+              <StrokeGlyph item={daily.strokes} speed={320} />
+            ) : (
+              <span className="ja-display" lang="ja">
+                {daily.kana.char}
+              </span>
+            )}
+          </div>
+          <div className={styles.dailyText}>
+            <p className={styles.eyebrow}>Kana of the day</p>
+            <p className={styles.dailyMeaning}>{daily.kana.romaji}</p>
+            <p className={styles.dailyReadings} lang="ja">
+              {daily.kana.script} ·{' '}
+              {daily.kana.pair ? `counterpart ${daily.kana.pair}` : 'no counterpart'}
+            </p>
+            <p className={styles.dailyStrokes}>Tap for the whole table</p>
           </div>
         </Link>
       )}

@@ -1,12 +1,45 @@
 import { fileURLToPath, URL } from 'node:url'
 
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+
+/**
+ * The entry stylesheet is small (about 5 kB gzip) and render-blocking, so it goes inline in
+ * index.html: one round trip fewer before the first paint on a slow connection.
+ */
+function inlineEntryCss(): Plugin {
+  return {
+    name: 'kintsugi:inline-entry-css',
+    apply: 'build',
+    enforce: 'post',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        const bundle = ctx.bundle
+        if (!bundle) return html
+        return html.replace(
+          /<link rel="stylesheet"[^>]*href="\/(assets\/index-[^"]+\.css)"[^>]*>/,
+          (tag, file: string) => {
+            const asset = bundle[file]
+            if (!asset || asset.type !== 'asset') return tag
+            const css =
+              typeof asset.source === 'string'
+                ? asset.source
+                : new TextDecoder().decode(asset.source)
+            delete bundle[file]
+            return `<style>${css}</style>`
+          },
+        )
+      },
+    },
+  }
+}
 
 export default defineConfig({
   plugins: [
     react(),
+    inlineEntryCss(),
     VitePWA({
       strategies: 'injectManifest',
       srcDir: 'src',

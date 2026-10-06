@@ -106,3 +106,40 @@ export const KanjiPackSchema = packSchema(KanjiItemSchema)
 export const VocabPackSchema = packSchema(VocabItemSchema)
 export type KanjiPack = z.infer<typeof KanjiPackSchema>
 export type VocabPack = z.infer<typeof VocabPackSchema>
+
+export const KanaItemSchema = z.object({
+  /** `kana:あ` */
+  id: z.string().regex(/^kana:.$/u),
+  char: z.string().length(1),
+  script: z.enum(['hiragana', 'katakana']),
+  /** Hepburn romanisation derived from the Unicode name (SI→shi, TI→chi, TU→tsu, HU→fu, ZI/DI→ji, DU→zu). */
+  romaji: z.string().min(1),
+  /** The Unicode name the romanisation came from. */
+  unicodeName: z.string(),
+  small: z.boolean(),
+  /** Voiced (dakuten) or semi-voiced (handakuten) form. */
+  voicing: z.enum(['none', 'dakuten', 'handakuten']),
+  /** Gojūon row consonant ('', 'k', 's', …) and vowel ('a'…'o'), for grouping lessons. */
+  row: z.string(),
+  vowel: z.string(),
+  /** The other script's counterpart, when one exists. */
+  pair: z.string().optional(),
+})
+export type KanaItem = z.infer<typeof KanaItemSchema>
+export const KanaPackSchema = packSchema(KanaItemSchema)
+
+export const PseudowordItemSchema = z.object({
+  /** Kana string that is not a JMdict reading; used as a placement-test lure. */
+  text: z.string().min(2),
+  mora: z.number().int().min(2).max(4),
+})
+export const ConfusableItemSchema = z.object({
+  /** Two kanji that share most components and a similar stroke count. */
+  a: z.string().length(1),
+  b: z.string().length(1),
+  shared: z.array(z.string()),
+  similarity: z.number().min(0).max(1),
+})
+export type ConfusableItem = z.infer<typeof ConfusableItemSchema>
+export const PlacementPackSchema = packSchema(PseudowordItemSchema)
+export const ConfusablePackSchema = packSchema(ConfusableItemSchema)

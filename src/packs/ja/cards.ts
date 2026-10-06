@@ -5,7 +5,16 @@ export const JA_CARD_TYPES = {
   kanjiMeaning: 'kanji-meaning',
   vocabMeaning: 'vocab-meaning',
   vocabReading: 'vocab-reading',
+  /** Kana → romaji, multiple choice. */
+  kanaRecognition: 'kana-recognition',
+  /** Two look-alike kanji, pick the one with the given meaning. Introduced once the base card is stable. */
+  kanjiContrast: 'kanji-contrast',
+  /** A sentence with the word blanked out, pick the word. Introduced once the base card is stable. */
+  vocabCloze: 'vocab-cloze',
 } as const
+
+/** Later-stage cards appear once the item's base card has this much stability (days). */
+export const DERIVED_STABILITY_DAYS = 7
 export type JaCardType = (typeof JA_CARD_TYPES)[keyof typeof JA_CARD_TYPES]
 
 /** The spelling shown for a word: the first common kanji form, else the first form, else the reading. */

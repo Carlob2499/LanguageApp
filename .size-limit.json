@@ -22,8 +22,8 @@
     "gzip": true
   },
   {
-    "name": "initial CSS (gzip)",
-    "path": ["dist/assets/index-*.css"],
+    "name": "HTML shell with the entry CSS inlined (gzip)",
+    "path": ["dist/index.html"],
     "limit": "24 kB",
     "gzip": true
   },

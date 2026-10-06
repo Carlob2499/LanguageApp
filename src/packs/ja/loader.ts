@@ -1,6 +1,15 @@
 import type { PackIndex } from '@/packs/schema'
 
-import type { KanjiItem, Level, SentenceItem, StrokeItem, VocabItem } from './types'
+import type {
+  ConfusableItem,
+  KanaItem,
+  KanjiItem,
+  Level,
+  SentenceItem,
+  StrokeItem,
+  VocabItem,
+} from './types'
+import { LEVELS } from './levels'
 
 /**
  * Packs are validated with zod when they are built (scripts/data/build.ts) and hash-checked by
@@ -86,4 +95,29 @@ export async function strokesFor(
 export async function sentencesFor(wordId: string, level: Level): Promise<SentenceItem[]> {
   const all = await loadSentences(level)
   return all.filter((s) => s.word === wordId)
+}
+
+export function loadKana(): Promise<KanaItem[]> {
+  return fetchJson('/packs/ja/kana.json', (d) => items<KanaItem>(d, 'kana'))
+}
+
+export function loadConfusables(): Promise<ConfusableItem[]> {
+  return fetchJson('/packs/ja/confusables.json', (d) => items<ConfusableItem>(d, 'confusables'))
+}
+
+export function loadPlacementLures(): Promise<Array<{ text: string; mora: number }>> {
+  return fetchJson('/packs/ja/placement.json', (d) =>
+    items<{ text: string; mora: number }>(d, 'placement'),
+  )
+}
+
+/** Finds a kanji in any level's pack (packs are small and cached). */
+export async function findKanji(
+  char: string,
+): Promise<{ kanji: KanjiItem; level: Level } | undefined> {
+  for (const level of LEVELS) {
+    const kanji = (await loadKanji(level)).find((k) => k.char === char)
+    if (kanji) return { kanji, level }
+  }
+  return undefined
 }

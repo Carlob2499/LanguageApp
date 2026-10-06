@@ -45,6 +45,17 @@ export const routes: RouteDefinition[] = [
     load: () => import('@/app/routes/Settings'),
     exportName: 'SettingsRoute',
   },
+  {
+    path: '/kana',
+    guard: requireOnboarding,
+    load: () => import('@/app/routes/Kana'),
+    exportName: 'KanaRoute',
+  },
+  {
+    path: '/placement',
+    load: () => import('@/app/routes/Placement'),
+    exportName: 'PlacementRoute',
+  },
   { path: '/about', load: () => import('@/app/routes/About'), exportName: 'AboutRoute' },
   {
     path: '/welcome',

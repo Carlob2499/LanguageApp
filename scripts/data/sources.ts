@@ -162,4 +162,14 @@ export const SOURCES: Source[] = [
     attribution:
       'Sentence recordings come from Tatoeba contributors; each clip names its speaker and licence on the Sources screen.',
   },
+  {
+    id: 'unicode-ucd',
+    name: 'Unicode Character Database (UnicodeData.txt)',
+    url: 'https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt',
+    homepage: 'https://www.unicode.org/ucd/',
+    file: 'UnicodeData.txt',
+    licence: { name: 'Unicode License v3', url: 'https://www.unicode.org/license.txt' },
+    attribution:
+      'Kana names and the romanisation derived from them come from the Unicode Character Database, copyright Unicode, Inc., used under the Unicode License v3.',
+  },
 ]

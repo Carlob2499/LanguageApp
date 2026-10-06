@@ -100,3 +100,32 @@ html[data-theme='light'] .segment[aria-checked='true'] {
   color: var(--fg-faint);
   font-size: var(--fs-small);
 }
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0 var(--sp-5);
+  border-radius: var(--radius-m);
+  border: 1px solid var(--hairline);
+  background: var(--bg-raised);
+  color: var(--fg);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.confirm {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-m);
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+  background: var(--bg-sunken);
+}

@@ -182,3 +182,8 @@ html[data-theme='light'] .cell {
 [data-state='relearning'] .badge {
   color: var(--danger-text);
 }
+
+.inlineLink {
+  color: var(--accent-text, var(--k-gold));
+  font-weight: 600;
+}

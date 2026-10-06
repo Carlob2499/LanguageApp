@@ -8,6 +8,7 @@ import { unzipSync } from 'fflate'
 import {
   KanjiItemSchema,
   LEVELS,
+  KanaItemSchema,
   SentenceItemSchema,
   StrokeItemSchema,
   VocabItemSchema,
@@ -147,6 +148,8 @@ interface RawExample {
   word: string
 }
 const examples: RawExample[] = []
+/** Every reading in JMdict, so placement-test pseudowords can be verified as non-words. */
+const allReadings = new Set<string>()
 let jmdictCount = 0
 let exampleCount = 0
 await streamRecords(
@@ -154,6 +157,7 @@ await streamRecords(
   'entry',
   (el) => {
     jmdictCount++
+    for (const r of children(el, 'r_ele')) allReadings.add(text(child(r, 'reb')))
     const seq = Number.parseInt(text(child(el, 'ent_seq')), 10)
     const level = vocabLevel.get(seq)
     if (!level) return
@@ -314,6 +318,134 @@ writeFileSync(
   ].join('\n') + '\n',
 )
 
+// 4e. Kana from the Unicode Character Database: names → Hepburn romanisation.
+const HEPBURN: Record<string, string> = {
+  si: 'shi',
+  ti: 'chi',
+  tu: 'tsu',
+  hu: 'fu',
+  zi: 'ji',
+  di: 'ji',
+  du: 'zu',
+  sya: 'sha',
+  syu: 'shu',
+  syo: 'sho',
+  tya: 'cha',
+  tyu: 'chu',
+  tyo: 'cho',
+  zya: 'ja',
+  zyu: 'ju',
+  zyo: 'jo',
+  dya: 'ja',
+  dyu: 'ju',
+  dyo: 'jo',
+}
+const kana: import('@/packs/ja/types').KanaItem[] = []
+{
+  const lines = readFileSync(join(RAW_DIR, 'UnicodeData.txt'), 'utf8').split('\n')
+  const seen = new Map<string, string>()
+  for (const line of lines) {
+    const [hex, name] = line.split(';')
+    if (!hex || !name) continue
+    const m = /^(HIRAGANA|KATAKANA) LETTER (SMALL )?([A-Z]+)$/.exec(name)
+    if (!m) continue
+    const cp = Number.parseInt(hex, 16)
+    if (cp < 0x3041 || cp > 0x30fa || (cp > 0x3096 && cp < 0x30a1)) continue
+    const char = String.fromCodePoint(cp)
+    const script = m[1] === 'HIRAGANA' ? 'hiragana' : 'katakana'
+    const small = Boolean(m[2])
+    const raw = m[3]!.toLowerCase()
+    if (['va', 'vi', 've', 'vo'].includes(raw) && script === 'hiragana') continue
+    const romaji = HEPBURN[raw] ?? raw
+    // Row, vowel and voicing come from the Unicode name (ti, tu, si…) devoiced, so じ and ぢ keep
+    // their own rows and pair with their own katakana.
+    const hasVowel = /[aiueo]$/.test(raw)
+    const vowel = hasVowel ? raw.slice(-1) : raw
+    const consonant = hasVowel ? raw.slice(0, -1) : ''
+    const devoiced: Record<string, string> = { g: 'k', z: 's', d: 't', b: 'h', p: 'h' }
+    const row = consonant.replace(/^[gzdbp]/, (c) => devoiced[c] ?? c)
+    const voicing = /^[gzdb]/.test(consonant)
+      ? 'dakuten'
+      : /^p/.test(consonant)
+        ? 'handakuten'
+        : 'none'
+    const key = `${script}:${raw}:${small}`
+    if (seen.has(key)) continue
+    seen.set(key, char)
+    kana.push({
+      id: `kana:${char}`,
+      char,
+      script,
+      romaji,
+      unicodeName: name,
+      small,
+      voicing,
+      row,
+      vowel,
+    })
+  }
+  const nameKey = (k: (typeof kana)[number]) => k.unicodeName.replace(/^(HIRAGANA|KATAKANA) /, '')
+  const h = new Map(kana.filter((k) => k.script === 'hiragana').map((k) => [nameKey(k), k.char]))
+  const k2 = new Map(kana.filter((k) => k.script === 'katakana').map((k) => [nameKey(k), k.char]))
+  for (const item of kana) {
+    const other = (item.script === 'hiragana' ? k2 : h).get(nameKey(item))
+    if (other) item.pair = other
+  }
+}
+
+// 4f. Placement-test pseudowords: kana strings that are not readings of any JMdict entry.
+const pseudowords: Array<{ text: string; mora: number }> = []
+{
+  const syllables = kana
+    .filter(
+      (k) =>
+        k.script === 'hiragana' &&
+        !k.small &&
+        k.voicing === 'none' &&
+        !['n', 'wo', 'wi', 'we', 'vu'].includes(k.romaji),
+    )
+    .map((k) => k.char)
+  let seed = 20261006
+  const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647
+  const used = new Set<string>()
+  while (pseudowords.length < 80) {
+    const mora = 2 + Math.floor(rand() * 3)
+    let text = ''
+    for (let i = 0; i < mora; i++) text += syllables[Math.floor(rand() * syllables.length)]
+    if (used.has(text) || allReadings.has(text)) continue
+    used.add(text)
+    pseudowords.push({ text, mora })
+  }
+}
+
+// 4g. Confusable kanji: pairs sharing most components with a similar stroke count, two per kanji at most.
+const confusables: Array<{ a: string; b: string; shared: string[]; similarity: number }> = []
+{
+  const withParts = kanji.filter((k) => k.components.length >= 2)
+  const perKanji = new Map<string, number>()
+  const candidates: Array<{ a: string; b: string; shared: string[]; similarity: number }> = []
+  for (let i = 0; i < withParts.length; i++) {
+    const a = withParts[i]!
+    const A = new Set(a.components)
+    for (let j = i + 1; j < withParts.length; j++) {
+      const b = withParts[j]!
+      if (Math.abs(a.strokes - b.strokes) > 1) continue
+      const B = new Set(b.components)
+      const shared = [...A].filter((c) => B.has(c))
+      if (shared.length < 2) continue
+      const similarity = shared.length / new Set([...A, ...B]).size
+      if (similarity >= 0.66) candidates.push({ a: a.char, b: b.char, shared, similarity })
+    }
+  }
+  candidates.sort((x, y) => y.similarity - x.similarity)
+  for (const c of candidates) {
+    if ((perKanji.get(c.a) ?? 0) >= 2 || (perKanji.get(c.b) ?? 0) >= 2) continue
+    perKanji.set(c.a, (perKanji.get(c.a) ?? 0) + 1)
+    perKanji.set(c.b, (perKanji.get(c.b) ?? 0) + 1)
+    confusables.push(c)
+  }
+}
+
 // 5. Validate everything before writing anything.
 const problems: string[] = []
 for (const item of kanji) {
@@ -335,6 +467,13 @@ for (const item of [...strokes, ...kanaStrokes]) {
   if (!r.success)
     problems.push(
       `strokes ${item.char}: ${r.error.issues.map((i) => i.path.join('.') + ' ' + i.message).join('; ')}`,
+    )
+}
+for (const item of kana) {
+  const r = KanaItemSchema.safeParse(item)
+  if (!r.success)
+    problems.push(
+      `kana ${item.char}: ${r.error.issues.map((i) => i.path.join('.') + ' ' + i.message).join('; ')}`,
     )
 }
 for (const item of sentences) {
@@ -458,6 +597,51 @@ for (const level of LEVELS) {
   })
   index.files['strokes']!['kana'] = 'strokes-kana.json'
   index.counts['strokes']!['kana'] = kanaStrokes.length
+  const kw2 = writeJson(join(PACKS_DIR, 'kana.json'), {
+    meta: { language: 'ja', kind: 'kana', generated, provenance: PROVENANCE_PATH },
+    items: kana,
+  })
+  files.push({
+    path: 'kana.json',
+    kind: 'kana',
+    records: kana.length,
+    ...kw2,
+    sources: ['unicode-ucd'],
+    transform:
+      'Hiragana and katakana letters from UnicodeData.txt with Hepburn romanisation derived from the Unicode name (SI→shi, TI→chi, TU→tsu, HU→fu, ZI/DI→ji, DU→zu, plus the ya/yu/yo digraph forms), small/voicing flags, gojūon row and vowel, and the counterpart in the other script.',
+  })
+  const pw = writeJson(join(PACKS_DIR, 'placement.json'), {
+    meta: { language: 'ja', kind: 'placement', generated, provenance: PROVENANCE_PATH },
+    items: pseudowords,
+  })
+  files.push({
+    path: 'placement.json',
+    kind: 'placement',
+    records: pseudowords.length,
+    ...pw,
+    sources: ['jmdict', 'unicode-ucd'],
+    transform:
+      'Eighty seeded random 2–4 mora hiragana strings verified absent from every JMdict reading; shown in the placement test as non-words, never as vocabulary.',
+  })
+  const cw = writeJson(join(PACKS_DIR, 'confusables.json'), {
+    meta: { language: 'ja', kind: 'confusables', generated, provenance: PROVENANCE_PATH },
+    items: confusables,
+  })
+  files.push({
+    path: 'confusables.json',
+    kind: 'confusables',
+    records: confusables.length,
+    ...cw,
+    sources: ['kradfile', 'kanjidic2'],
+    transform:
+      'Kanji pairs sharing at least two KRADFILE components with Jaccard similarity ≥ 0.66 and stroke counts within one, at most two pairs per kanji.',
+  })
+  index.files['kana'] = { all: 'kana.json' }
+  index.files['placement'] = { all: 'placement.json' }
+  index.files['confusables'] = { all: 'confusables.json' }
+  index.counts['kana'] = { all: kana.length }
+  index.counts['placement'] = { all: pseudowords.length }
+  index.counts['confusables'] = { all: confusables.length }
 }
 const iw = writeJson(join(PACKS_DIR, 'index.json'), index)
 files.push({
@@ -516,5 +700,8 @@ console.log(
 )
 console.log(
   `Sentences: ${sentences.length} for ${perWord.size} words; with licensed audio: ${sentences.filter((x) => x.audio).length} (${clips.length} clips, ${downloaded} downloaded now)`,
+)
+console.log(
+  `Kana: ${kana.length}; pseudowords: ${pseudowords.length}; confusable pairs: ${confusables.length}`,
 )
 console.log(`Wrote ${files.length} files to ${PACKS_DIR}.`)

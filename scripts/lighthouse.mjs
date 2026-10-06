@@ -1,8 +1,9 @@
 // Runs Lighthouse (mobile) against the production preview and enforces the plan's budgets.
 // Simulated throttling is sensitive to CPU noise on shared machines, so each number is the
-// median of three runs.
+// median of five runs.
 import { spawn } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
 import { launch } from 'chrome-launcher'
 import lighthouse from 'lighthouse'
@@ -11,7 +12,7 @@ import { resolveChromium } from './browser.mjs'
 
 const PORT = 4174
 const URL_UNDER_TEST = `http://127.0.0.1:${PORT}/`
-const RUNS = 3
+const RUNS = 5
 const THRESHOLDS = {
   performance: 0.9,
   accessibility: 0.95,
@@ -21,21 +22,33 @@ const THRESHOLDS = {
   tbtMs: 200,
 }
 
+async function portInUse() {
+  try {
+    await fetch(URL_UNDER_TEST)
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function startPreview() {
-  const cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx'
-  const child = spawn(cmd, ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
-    stdio: 'ignore',
-    shell: process.platform === 'win32',
-  })
+  // A server already on the port would be measured instead of this build, so refuse to continue.
+  if (await portInUse()) {
+    throw new Error(
+      `Something already answers on port ${PORT}. Stop it first (see CLAUDE.md, "stale preview").`,
+    )
+  }
+  // Vite's own binary rather than npx, so killing the child kills the server, not a wrapper.
+  const bin = fileURLToPath(new URL('../node_modules/vite/bin/vite.js', import.meta.url))
+  const child = spawn(
+    process.execPath,
+    [bin, 'preview', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'],
+    { stdio: 'ignore' },
+  )
   const deadline = Date.now() + 30_000
   while (Date.now() < deadline) {
     if (child.exitCode !== null) throw new Error(`preview exited with ${child.exitCode}`)
-    try {
-      const res = await fetch(URL_UNDER_TEST)
-      if (res.ok) return child
-    } catch {
-      // not up yet
-    }
+    if (await portInUse()) return child
     await new Promise((r) => setTimeout(r, 250))
   }
   child.kill()

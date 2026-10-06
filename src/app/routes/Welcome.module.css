@@ -217,3 +217,10 @@
   z-index: -1;
   pointer-events: none;
 }
+
+.buttonRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  min-height: 3.5rem;
+}

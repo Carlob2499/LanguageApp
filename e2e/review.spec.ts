@@ -5,6 +5,8 @@ async function onboard(page: Page) {
   await page.goto('/')
   await expect(page).toHaveURL(/\/welcome$/)
   await page.getByRole('button', { name: 'Start' }).click()
+  await page.getByRole('radio', { name: /^漢/ }).click()
+  await page.getByRole('button', { name: 'Pick a level myself' }).click()
   await page.getByRole('radio', { name: /^N5/ }).click()
   await page.getByRole('button', { name: 'Continue' }).click()
   await page.getByRole('radio', { name: /^10/ }).click()

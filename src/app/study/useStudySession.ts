@@ -81,7 +81,7 @@ export function useStudySession(): StudySession {
     void (async () => {
       try {
         const now = Date.now()
-        const lib = await loadLibrary(settings.level, now)
+        const lib = await loadLibrary(settings.level, now, { kanaReady: settings.kanaReady })
         const existing = await withReopen(() => db.cards.toArray())
         const byKey = new Map(existing.map((c) => [c.key, c]))
         const saved = (await db.settings.get('session'))?.value as SavedSession | undefined
@@ -136,7 +136,13 @@ export function useStudySession(): StudySession {
     return () => {
       cancelled = true
     }
-  }, [settings.level, settings.newPerDay, settings.maxReviews, settings.backlogGate])
+  }, [
+    settings.level,
+    settings.newPerDay,
+    settings.maxReviews,
+    settings.backlogGate,
+    settings.kanaReady,
+  ])
 
   const persistIndex = useCallback(async (next: SessionState) => {
     const saved = (await db.settings.get('session'))?.value as SavedSession | undefined

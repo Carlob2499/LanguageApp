@@ -13,6 +13,10 @@ export interface Settings {
   theme: 'auto' | 'dark' | 'light'
   /** Multiplier for Japanese text size: 1 = default. */
   jaTextScale: 1 | 1.15 | 1.3
+  /** False until the learner reads kana: sessions then draw kana cards and kanji wait. */
+  kanaReady: boolean
+  /** Placement result, kept so Settings can show how the level was chosen. */
+  placedAt?: Level
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -24,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
   desiredRetention: 0.9,
   theme: 'auto',
   jaTextScale: 1,
+  kanaReady: true,
 }
 
 /**

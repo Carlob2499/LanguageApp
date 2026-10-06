@@ -9,7 +9,7 @@ import { TabBar } from './TabBar'
 
 export function Shell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
-  const focused = pathname === '/review' || pathname === '/welcome'
+  const focused = pathname === '/review' || pathname === '/welcome' || pathname === '/placement'
   // The ambient layers arrive after the first paint so they never sit in the critical path.
   const [ambient, setAmbient] = useState(false)
   useEffect(() => {

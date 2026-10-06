@@ -7,7 +7,7 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - [x] M0 Scaffold (2026-10-06)
 - [x] M1 Prototype, built and pushed (2026-10-06); waiting on the Vercel import for the iPhone check
 - [x] M2 Full content pipeline + design overhaul (2026-10-06)
-- [ ] M3 Learning engine
+- [x] M3 Learning engine (2026-10-06)
 - [ ] M4 Kanji study depth
 - [ ] M5 Desktop
 - [ ] M6 PWA hardening and sync
@@ -46,6 +46,16 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - Design overhaul after the user asked for something far more immersive: ambient gold-dust lacquer canvas with vignette and a static grain tile; custom brush-weight icon set; floating glass tab bar with a gold underglow that glides between tabs (Motion layoutId); kanji that write themselves stroke by stroke (`StrokeGlyph`, CSS dash animation on `pathLength=1`, no DOM measurement) on Welcome, Today's kanji of the day, review reveals and the kanji detail screen; procedural cracks seeded by card key that draw on Again and get retraced in gold as a card recovers; a filling lacquer vessel for session and level progress; furigana as a tappable hint layer; sentences with the word highlighted plus Tatoeba credit; a detent bottom sheet for word details; gold-leaf flecks when a session completes; a shimmer route fallback. New routes: /kanji/:char, /progress, /settings.
 - Accessibility: every gold-as-text use now goes through `--accent-text` (bengara on the paper theme); axe passes on Chromium in both schemes.
 - Performance work to keep Lighthouse mobile LCP under 2.5 s after the redesign: the tab bar's glow is a CSS glide (Motion stays out of the first paint); the ambient canvas and grain mount 1.2 s after first paint, run at 30 fps, and use no blend modes; SVG drop-shadow filters replaced by static radial glows; the 120 Japanese `@font-face` rules moved to `public/fonts/ja.css`, attached after React's first commit; the welcome hero (glyph, tiles) mounts after first paint in a fixed-height box. Simulated LCP went 3.5 s → 2.3 s; observed real paint stays under 300 ms.
+
+### 2026-10-06 — M3 Learning engine
+
+- Pipeline: `kana.json` (176 letters from UnicodeData.txt with Hepburn romanisation derived from the Unicode names, rows/vowels/voicing, cross-script pairs; Unicode License v3 on Sources), `placement.json` (80 seeded pseudowords verified absent from every JMdict reading), `confusables.json` (207 kanji pairs sharing ≥ 2 KRADFILE components, Jaccard ≥ 0.66, strokes within one, ≤ 2 per kanji).
+- Engine: `placement.ts`, a Yes/No staircase with lures (corrected score = hits − false alarms; up at ≥ 0.6, down at < 0.3, two reversals or seven blocks stop it; estimate = highest band cleared), with five unit tests. New card types: `kana-recognition`, `kanji-contrast`, `vocab-cloze`; the last two are generated for items whose base card is in review with stability ≥ 7 days.
+- App: welcome asks "Do you read kana?"; "Not yet" starts a kana-first mode where sessions introduce kana row by row and kanji wait until the kana check (10 hiragana, 9 to pass) or the Settings override; "Yes" offers the placement test (/placement) or a manual level. Kana table (/kana) with self-writing kana and counterparts. Multiple-choice cards with keys 1–4 and auto-grading. Backup to a JSON file via the share sheet or download, restore with a confirmation. Settings gained Backup and Kana sections.
+- Tests: 50 unit, 14 e2e (adds kana-first session, placement to N5, backup download). CI's e2e web server now binds to 127.0.0.1 (the earlier CI failure was Vite preview on IPv6 localhost).
+- Screenshot review (reports/screenshots/m3): the kana table listed や/ゆ/よ/ん inside the a-row because the row derivation stripped a trailing y from every Unicode name, fixed in the pipeline and packs rebuilt; the tab bar now hides during placement; the placement answer buttons no longer wrap; the kana-first Today screen spotlights a kana instead of a kanji.
+- Performance: the entry stylesheet is inlined into index.html by a small Vite plugin (one render-blocking round trip fewer); the Lighthouse script now spawns Vite's own binary so the preview dies with the script, refuses to run while port 4174 is occupied (a stale server had been serving older builds and made LCP numbers drift by 350 ms), and takes the median of five runs. Verify on this VM: performance 0.97, LCP 2232 ms, CLS 0.01, TBT 15 ms.
+- Deferred: FSRS seeding from placement answers (the plan said seed only claimed-known items with low stability; v1 sets the level only), leech prompts beyond the 8-lapse flag, picture mnemonics for kana.
 
 ## Spot-checks
 

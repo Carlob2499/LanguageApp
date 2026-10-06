@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 
 import { Button } from '@/app/components/Button'
+import { Choices, type Choice } from '@/app/components/Choices'
 import { Crack } from '@/app/components/Crack'
 import { Furigana } from '@/app/components/Furigana'
 import { GoldFlecks } from '@/app/components/GoldFlecks'
@@ -18,7 +19,7 @@ import { displayForm, JA_CARD_TYPES, primaryGloss, readingsFor } from '@/packs/j
 import { checkReading } from '@/packs/ja/grading'
 import { sentencesFor, strokesFor } from '@/packs/ja/loader'
 import type { Level } from '@/packs/ja/levels'
-import type { KanjiItem, SentenceItem, StrokeItem, VocabItem } from '@/packs/ja/types'
+import type { KanaItem, KanjiItem, SentenceItem, StrokeItem, VocabItem } from '@/packs/ja/types'
 
 import styles from './Review.module.css'
 
@@ -117,7 +118,9 @@ export function ReviewRoute() {
   if (!card || !library) return null
   const item = card.itemId.startsWith('k:')
     ? library.kanji.get(card.itemId)
-    : library.vocab.get(card.itemId)
+    : card.itemId.startsWith('kana:')
+      ? library.kana.get(card.itemId)
+      : library.vocab.get(card.itemId)
   const fill = session.total === 0 ? 0 : session.done / session.total
 
   return (
@@ -155,11 +158,23 @@ export function ReviewRoute() {
         </button>
       </header>
 
-      {item ? (
-        <CardFace
+      {item &&
+      (card.cardType === JA_CARD_TYPES.kanaRecognition ||
+        card.cardType === JA_CARD_TYPES.kanjiContrast ||
+        card.cardType === JA_CARD_TYPES.vocabCloze) ? (
+        <ChoiceFace
           key={card.key}
           card={card}
           item={item}
+          session={session}
+          cracking={cracking}
+          onGrade={gradeWithCrack}
+        />
+      ) : item ? (
+        <CardFace
+          key={card.key}
+          card={card}
+          item={item as KanjiItem | VocabItem}
           session={session}
           cracking={cracking}
           onGrade={gradeWithCrack}
@@ -492,4 +507,182 @@ function ReadingInput({ item, session }: { item: VocabItem; session: Session }) 
       </Button>
     </form>
   )
+}
+
+/** Multiple-choice cards: kana → romaji, look-alike kanji by meaning, and sentence cloze. */
+function ChoiceFace({
+  card,
+  item,
+  session,
+  cracking,
+  onGrade,
+}: {
+  card: StudyCard
+  item: KanaItem | KanjiItem | VocabItem
+  session: Session
+  cracking: boolean
+  onGrade: (g: Grade) => void
+}) {
+  const library = session.library!
+  const [picked, setPicked] = useState<string>()
+  const repaired =
+    card.lapses > 0 ? Math.min(1, Math.max(0, (card.reps - card.lapses) / (card.lapses + 2))) : 0
+
+  const built = useMemo(() => buildChoices(card, item, library), [card, item, library])
+
+  function pick(id: string) {
+    if (picked) return
+    setPicked(id)
+    const right = id === built.correctId
+    session.answer(right ? 'right' : 'wrong')
+    window.setTimeout(() => onGrade(right ? 3 : 1), right ? 700 : 1500)
+  }
+
+  return (
+    <Tile cardKey={card.key} swipeEnabled={false} seamProgress={repaired} onSwipe={() => undefined}>
+      {(card.lapses > 0 || cracking) && (
+        <Crack seed={card.key} gold={cracking ? 0 : repaired} drawing={cracking} />
+      )}
+      <div className={styles.prompt}>
+        <p className={styles.kind}>{built.kind}</p>
+        {built.promptJa ? (
+          <p
+            className={`${styles.hero} ja-display`}
+            lang="ja"
+            style={
+              built.small
+                ? {
+                    fontSize: 'calc(var(--fs-h1) * var(--ja-scale, 1))',
+                    lineHeight: 1.5,
+                    textAlign: 'center',
+                    padding: '0 var(--sp-3)',
+                  }
+                : undefined
+            }
+          >
+            {built.promptJa}
+          </p>
+        ) : (
+          <p className={styles.meaning}>{built.promptEn}</p>
+        )}
+        {built.promptJa && built.promptEn && <p className={styles.sub}>{built.promptEn}</p>}
+      </div>
+      <div className={styles.answer}>
+        <Choices
+          choices={built.choices}
+          correctId={built.correctId}
+          picked={picked}
+          onPick={pick}
+          label={built.kind}
+        />
+      </div>
+      <div className={styles.hint}>
+        {session.verdict === 'right' ? (
+          <span className={styles.right}>Right.</span>
+        ) : session.verdict === 'wrong' ? (
+          <span className={styles.wrong}>Not quite. {built.explain}</span>
+        ) : (
+          <span>Pick one. Keys 1–4 work too.</span>
+        )}
+      </div>
+    </Tile>
+  )
+}
+
+interface Built {
+  kind: string
+  promptJa?: string | undefined
+  promptEn?: string | undefined
+  small?: boolean | undefined
+  choices: Choice[]
+  correctId: string
+  explain: string
+}
+
+function seededPick<T>(items: T[], n: number, seed: string): T[] {
+  let h = 2166136261
+  for (const ch of seed) h = Math.imul(h ^ ch.codePointAt(0)!, 16777619)
+  const copy = [...items]
+  const out: T[] = []
+  while (out.length < n && copy.length > 0) {
+    h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0
+    out.push(copy.splice(h % copy.length, 1)[0]!)
+  }
+  return out
+}
+
+function buildChoices(
+  card: StudyCard,
+  item: KanaItem | KanjiItem | VocabItem,
+  library: NonNullable<Session['library']>,
+): Built {
+  const seed = `${card.key}|${card.reps}`
+  if (card.cardType === JA_CARD_TYPES.kanaRecognition) {
+    const kana = item as KanaItem
+    const pool = [...library.kana.values()].filter(
+      (k) => k.script === kana.script && !k.small && k.romaji !== kana.romaji,
+    )
+    const near = pool.filter((k) => k.row === kana.row || k.vowel === kana.vowel)
+    const distractors = seededPick(near.length >= 3 ? near : pool, 3, seed)
+    const choices = seededPick([kana, ...distractors], 4, seed + 'o').map<Choice>((k) => ({
+      id: k.id,
+      label: k.romaji,
+    }))
+    return {
+      kind: 'Kana · sound',
+      promptJa: kana.char,
+      choices,
+      correctId: kana.id,
+      explain: `${kana.char} is ${kana.romaji}.`,
+    }
+  }
+  if (card.cardType === JA_CARD_TYPES.kanjiContrast) {
+    const kanji = item as KanjiItem
+    const pairs = library.confusables.get(kanji.id) ?? []
+    const pair = seededPick(pairs, 1, seed)[0]
+    const otherChar = pair ? (pair.a === kanji.char ? pair.b : pair.a) : undefined
+    const other = otherChar
+      ? [...library.kanji.values()].find((k) => k.char === otherChar)
+      : undefined
+    const choices = seededPick([kanji, ...(other ? [other] : [])], 2, seed + 'o').map<Choice>(
+      (k) => ({ id: k.id, label: k.char, lang: 'ja' }),
+    )
+    return {
+      kind: 'Look-alikes · which one',
+      promptEn: kanji.meanings.slice(0, 2).join(' · '),
+      choices,
+      correctId: kanji.id,
+      explain: `${kanji.char} is ${kanji.meanings[0]}${other ? `; ${other.char} is ${other.meanings[0]}` : ''}.`,
+    }
+  }
+  const word = item as VocabItem
+  const form = displayForm(word)
+  const sentence =
+    (library.sentences.get(word.id) ?? []).find((s) => s.jp.includes(s.form)) ??
+    library.sentences.get(word.id)?.[0]
+  const blanked = sentence ? sentence.jp.replace(sentence.form, '＿＿') : form
+  const pool = [...library.vocab.values()].filter(
+    (v) =>
+      v.id !== word.id &&
+      v.forms.length > 0 &&
+      v.senses[0]!.pos.some((p) => word.senses[0]!.pos.includes(p)),
+  )
+  const distractors = seededPick(
+    pool.length >= 3 ? pool : [...library.vocab.values()].filter((v) => v.id !== word.id),
+    3,
+    seed,
+  )
+  const choices = seededPick([word, ...distractors], 4, seed + 'o').map<Choice>((v) => {
+    const f = displayForm(v)
+    return { id: v.id, label: f, sub: readingsFor(v, f)[0], lang: 'ja' }
+  })
+  return {
+    kind: 'Fill the blank',
+    promptJa: blanked,
+    promptEn: sentence?.en,
+    small: true,
+    choices,
+    correctId: word.id,
+    explain: `The word is ${form}.`,
+  }
 }
