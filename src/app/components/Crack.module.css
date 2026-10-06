@@ -1,0 +1,76 @@
+.crack {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.line,
+.lineDrawing,
+.branch,
+.branchDrawing {
+  fill: none;
+  stroke: rgb(0 0 0 / 0.55);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+html[data-theme='light'] .line,
+html[data-theme='light'] .lineDrawing,
+html[data-theme='light'] .branch,
+html[data-theme='light'] .branchDrawing {
+  stroke: rgb(28 13 11 / 0.45);
+}
+
+.lineDrawing {
+  stroke-dasharray: 480;
+  stroke-dashoffset: 480;
+  animation: crack 420ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+.branchDrawing {
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  animation: crack 260ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+.gold,
+.goldGlow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  transition: stroke-dashoffset 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.gold {
+  stroke: var(--k-gold);
+  stroke-width: 2.2;
+}
+
+.goldGlow {
+  stroke: rgb(240 197 107 / 0.3);
+  stroke-width: 6;
+}
+
+@keyframes crack {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lineDrawing,
+  .branchDrawing {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .gold,
+  .goldGlow {
+    transition: none;
+  }
+}

@@ -127,4 +127,39 @@ export const SOURCES: Source[] = [
     attribution:
       'JLPT kanji levels are unofficial. They come from Jonathan Waller\u2019s JLPT Resources lists (CC BY), as collected by davidluzgouveia/kanji-data.',
   },
+  {
+    id: 'kanjivg',
+    name: 'KanjiVG',
+    url: 'https://github.com/KanjiVG/kanjivg/releases/download/r20260714/kanjivg-20260714-all.zip',
+    homepage: 'https://kanjivg.tagaini.net/',
+    file: 'kanjivg.zip',
+    licence: { name: 'CC BY-SA 3.0', url: 'https://creativecommons.org/licenses/by-sa/3.0/' },
+    attribution:
+      'Stroke order and component data come from KanjiVG, copyright Ulrich Apel, used under the Creative Commons Attribution-ShareAlike 3.0 licence (https://kanjivg.tagaini.net).',
+  },
+  {
+    id: 'tatoeba-jpn-sentences',
+    name: 'Tatoeba Japanese sentences (contributor index)',
+    url: 'https://downloads.tatoeba.org/exports/per_language/jpn/jpn_sentences_detailed.tsv.bz2',
+    homepage: 'https://tatoeba.org/',
+    file: 'jpn_sentences_detailed.tsv.bz2',
+    licence: { name: 'CC BY 2.0 FR', url: 'https://creativecommons.org/licenses/by/2.0/fr/' },
+    attribution:
+      'Example sentences come from the Tatoeba Project (https://tatoeba.org), licensed CC BY 2.0 FR. Each sentence credits its contributor and links to its Tatoeba page.',
+  },
+  {
+    id: 'tatoeba-jpn-audio',
+    name: 'Tatoeba Japanese audio index',
+    url: 'https://downloads.tatoeba.org/exports/per_language/jpn/jpn_sentences_with_audio.tsv.bz2',
+    homepage: 'https://tatoeba.org/',
+    file: 'jpn_sentences_with_audio.tsv.bz2',
+    licence: {
+      name: 'Per recording (CC BY 4.0 or CC BY-NC 4.0 only)',
+      url: 'https://tatoeba.org/en/audio/index',
+      notes:
+        'Recordings without a licence are never used. Each shipped clip credits its speaker and licence.',
+    },
+    attribution:
+      'Sentence recordings come from Tatoeba contributors; each clip names its speaker and licence on the Sources screen.',
+  },
 ]

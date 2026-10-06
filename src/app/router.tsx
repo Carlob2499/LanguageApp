@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- route table lives beside the app router component */
 import { Shell } from '@/app/components/Shell'
 import { Router, type RouteDefinition } from '@/app/router/index'
-import { AboutRoute } from '@/app/routes/About'
+import { RouteShimmer } from '@/app/components/RouteShimmer'
 import { NotFoundRoute } from '@/app/routes/NotFound'
 import { WelcomeRoute } from '@/app/routes/Welcome'
 import { useSettings } from '@/app/study/settings'
@@ -27,7 +27,25 @@ export const routes: RouteDefinition[] = [
     load: () => import('@/app/routes/Library'),
     exportName: 'LibraryRoute',
   },
-  { path: '/about', component: AboutRoute },
+  {
+    path: '/kanji/:char',
+    guard: requireOnboarding,
+    load: () => import('@/app/routes/KanjiDetail'),
+    exportName: 'KanjiDetailRoute',
+  },
+  {
+    path: '/progress',
+    guard: requireOnboarding,
+    load: () => import('@/app/routes/Progress'),
+    exportName: 'ProgressRoute',
+  },
+  {
+    path: '/settings',
+    guard: requireOnboarding,
+    load: () => import('@/app/routes/Settings'),
+    exportName: 'SettingsRoute',
+  },
+  { path: '/about', load: () => import('@/app/routes/About'), exportName: 'AboutRoute' },
   {
     path: '/welcome',
     guard: () => (useSettings.getState().settings.onboarded ? '/' : undefined),
@@ -36,5 +54,7 @@ export const routes: RouteDefinition[] = [
 ]
 
 export function AppRouter() {
-  return <Router routes={routes} notFound={NotFoundRoute} layout={Shell} />
+  return (
+    <Router routes={routes} notFound={NotFoundRoute} layout={Shell} fallback={<RouteShimmer />} />
+  )
 }

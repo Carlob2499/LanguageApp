@@ -1,6 +1,6 @@
 import type { PackIndex } from '@/packs/schema'
 
-import type { KanjiItem, Level, VocabItem } from './types'
+import type { KanjiItem, Level, SentenceItem, StrokeItem, VocabItem } from './types'
 
 /**
  * Packs are validated with zod when they are built (scripts/data/build.ts) and hash-checked by
@@ -53,4 +53,37 @@ export async function loadLevelItems(
     kanji: new Map(kanji.map((k) => [k.id, k])),
     vocab: new Map(vocab.map((v) => [v.id, v])),
   }
+}
+
+export function loadStrokes(level: Level | 'kana'): Promise<StrokeItem[]> {
+  return fetchJson(`/packs/ja/strokes-${level}.json`, (d) =>
+    items<StrokeItem>(d, `strokes-${level}`),
+  )
+}
+
+export function loadSentences(level: Level): Promise<SentenceItem[]> {
+  return fetchJson(`/packs/ja/sentences-${level}.json`, (d) =>
+    items<SentenceItem>(d, `sentences-${level}`),
+  )
+}
+
+const strokeIndex = new Map<string, Promise<Map<string, StrokeItem>>>()
+
+/** Stroke data for one character, from its level's pack (or the kana pack). */
+export async function strokesFor(
+  char: string,
+  level: Level | 'kana',
+): Promise<StrokeItem | undefined> {
+  let index = strokeIndex.get(level)
+  if (!index) {
+    index = loadStrokes(level).then((list) => new Map(list.map((s) => [s.char, s])))
+    strokeIndex.set(level, index)
+  }
+  return (await index).get(char)
+}
+
+/** Sentences for one word, from its level's pack. */
+export async function sentencesFor(wordId: string, level: Level): Promise<SentenceItem[]> {
+  const all = await loadSentences(level)
+  return all.filter((s) => s.word === wordId)
 }

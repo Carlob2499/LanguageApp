@@ -6,7 +6,7 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 
 - [x] M0 Scaffold (2026-10-06)
 - [x] M1 Prototype, built and pushed (2026-10-06); waiting on the Vercel import for the iPhone check
-- [ ] M2 Full content pipeline
+- [x] M2 Full content pipeline + design overhaul (2026-10-06)
 - [ ] M3 Learning engine
 - [ ] M4 Kanji study depth
 - [ ] M5 Desktop
@@ -38,6 +38,68 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - Screenshots reviewed at 360/430/834/1440 px (`npm run qa:screenshots`); fixed the Today watermark overlapping the stats.
 - Known gaps for the iPhone check: no kana module or placement test yet (M3), no sentences/audio/strokes (M2/M4), Sources screen lists duties but not yet every dataset (M2).
 
+### 2026-10-06 — M2 Content pipeline and the immersive redesign
+
+- Pipeline now also builds `strokes-N*.json` + `strokes-kana.json` (KanjiVG r20260714: every level kanji, 86 hiragana, 90 katakana; stroke paths, number positions, component tree), `components` on each kanji (KRADFILE/KRADFILE2, EUC-JP decoded), and `sentences-N*.json` (JMdict example pairs, up to three per word, credited to the Tatoeba contributor from the per-language export, linked to the sentence page). Licensed audio: only 7 of the sentences our packs use have a CC BY / CC BY-NC / CC BY-SA / CC0 recording; those 7 clips ship under `public/audio` with `CREDITS.txt`. The rest falls back to on-device speech.
+- `npm run data:spotcheck` samples 20 kanji, 20 words and 10 sentences and compares them field by field with the raw KANJIDIC2 / JMdict records; result below. `npm run data:update` is complete, and `.github/workflows/data-update.yml` runs it monthly and opens a PR.
+- Sources screen rebuilt from `provenance.json`: every dataset, its licence link, attribution wording, fetch date and hash, the audio credits, the built files and their transforms, the software licences.
+- Design overhaul after the user asked for something far more immersive: ambient gold-dust lacquer canvas with vignette and a static grain tile; custom brush-weight icon set; floating glass tab bar with a gold underglow that glides between tabs (Motion layoutId); kanji that write themselves stroke by stroke (`StrokeGlyph`, CSS dash animation on `pathLength=1`, no DOM measurement) on Welcome, Today's kanji of the day, review reveals and the kanji detail screen; procedural cracks seeded by card key that draw on Again and get retraced in gold as a card recovers; a filling lacquer vessel for session and level progress; furigana as a tappable hint layer; sentences with the word highlighted plus Tatoeba credit; a detent bottom sheet for word details; gold-leaf flecks when a session completes; a shimmer route fallback. New routes: /kanji/:char, /progress, /settings.
+- Accessibility: every gold-as-text use now goes through `--accent-text` (bengara on the paper theme); axe passes on Chromium in both schemes.
+- Performance work to keep Lighthouse mobile LCP under 2.5 s after the redesign: the tab bar's glow is a CSS glide (Motion stays out of the first paint); the ambient canvas and grain mount 1.2 s after first paint, run at 30 fps, and use no blend modes; SVG drop-shadow filters replaced by static radial glows; the 120 Japanese `@font-face` rules moved to `public/fonts/ja.css`, attached after React's first commit; the welcome hero (glyph, tiles) mounts after first paint in a fixed-height box. Simulated LCP went 3.5 s → 2.3 s; observed real paint stays under 300 ms.
+
 ## Spot-checks
 
 (none yet)
+
+### 2026-10-06 — 50/50 matched (20 kanji vs KANJIDIC2, 20 words vs JMdict, 10 sentences vs JMdict examples)
+
+- ok kanji 徳 (N1) on=トク kun= meanings=benevolence; virtue strokes=14
+- ok kanji 衷 (N1) on=チュウ kun= meanings=inmost; heart strokes=9
+- ok kanji 勁 (N1) on=ケイ kun=つよ.い meanings=strong strokes=9
+- ok kanji 止 (N4) on=シ kun=と.まる/-ど.まり/と.める meanings=stop; halt strokes=4
+- ok kanji 段 (N3) on=ダン/タン kun= meanings=grade; steps strokes=9
+- ok kanji 童 (N2) on=ドウ kun=わらべ meanings=juvenile; child strokes=12
+- ok kanji 迷 (N3) on=メイ kun=まよ.う meanings=astray; be perplexed strokes=9
+- ok kanji 借 (N4) on=シャク kun=か.りる meanings=borrow; rent strokes=10
+- ok kanji 敏 (N1) on=ビン kun=さとい meanings=cleverness; agile strokes=10
+- ok kanji 焼 (N2) on=ショウ kun=や.く/や.き/や.き- meanings=bake; burning strokes=12
+- ok kanji 於 (N1) on=オ/ヨ kun=おい.て/お.ける/ああ meanings=at; in strokes=8
+- ok kanji 精 (N3) on=セイ/ショウ kun=しら.げる/くわ.しい meanings=refined; ghost strokes=14
+- ok kanji 隷 (N1) on=レイ kun=したが.う/しもべ meanings=slave; servant strokes=16
+- ok kanji 該 (N1) on=ガイ kun= meanings=above-stated; the said strokes=13
+- ok kanji 載 (N1) on=サイ kun=の.せる/の.る meanings=ride; board strokes=13
+- ok kanji 幣 (N1) on=ヘイ kun=ぬさ meanings=cash; bad habit strokes=15
+- ok kanji 紫 (N1) on=シ kun=むらさき meanings=purple; violet strokes=12
+- ok kanji 燦 (N1) on=サン kun=さん.たる/あき.らか/きらめ.く meanings=brilliant strokes=17
+- ok kanji 亮 (N1) on=リョウ kun=あきらか meanings=clear; help strokes=9
+- ok kanji 菖 (N1) on=ショウ kun= meanings=iris strokes=11
+- ok vocab 1459460 (N1) 内乱 ないらん = civil war; insurrection
+- ok vocab 1385170 (N5) 切符 きっぷ = ticket
+- ok vocab 1420680 (N3) 知能 ちのう = intelligence; intellect
+- ok vocab 1145910 (N2) レベル = level; standard
+- ok vocab 1277880 (N2) 孝行 こうこう = filial piety
+- ok vocab 1351430 (N4) 紹介 しょうかい = introduction; presentation
+- ok vocab 1206530 (N3) 学ぶ まなぶ = to learn; to study
+- ok vocab 1194290 (N5) 火曜日 かようび = Tuesday
+- ok vocab 1323280 (N2) 車輪 しゃりん = (vehicle) wheel
+- ok vocab 1472870 (N1) 肺 はい = lung
+- ok vocab 1422520 (N1) 秩序 ちつじょ = order; discipline
+- ok vocab 1446070 (N5) 冬 ふゆ = winter
+- ok vocab 1227890 (N1) 休戦 きゅうせん = cease-fire; truce
+- ok vocab 1408850 (N1) 打開 だかい = break in the deadlock
+- ok vocab 1360920 (N2) 心得る こころえる = to know; to understand
+- ok vocab 1076470 (N1) タワー = tower
+- ok vocab 1438340 (N1) 天井 てんじょう = ceiling
+- ok vocab 1076900 (N2) ダイヤル = dial (e.g. telephone, radio, clock, gauge)
+- ok vocab 1194570 (N2) 花嫁 はなよめ = bride
+- ok vocab 2859682 (N1) 怒る いかる = to get angry; to get mad
+- ok sentence 102433 彼は大学院に進学しないだろう。… / He won't go on to graduate schoo…
+- ok sentence 161437 私はいたずらな子供を大目に見る事ができない。… / I cannot be tolerant of naughty …
+- ok sentence 75604 入学式も終わりました。同じ沿線の大学です。… / I've already had the entrance ce…
+- ok sentence 230002 ありがとう。また、次の日にくるようにします。… / Thanks. Maybe we'll come back.…
+- ok sentence 183812 観客は彼のホームランに興奮した。… / His home run excited the crowd.…
+- ok sentence 193234 もっと大きい声で言ってください。… / Louder, please.…
+- ok sentence 170580 最後にはうまく収まるだろう。… / It'll come right in the end.…
+- ok sentence 205978 そよ風で池の面にさざ波が立った。… / A gentle wind made ripples on th…
+- ok sentence 97889 彼らはその船を岸にあげた。… / They drew the boat on the beach.…
+- ok sentence 205558 それはあまり価値がない。… / It's not worth much.…

@@ -1,0 +1,35 @@
+name: Data update
+
+# The EDRDG licence requires a procedure for regularly updating the dictionary data.
+# This runs the pipeline monthly and opens a pull request when the packs change.
+on:
+  schedule:
+    - cron: '17 4 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run data:update
+      - run: npm run fonts:build
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: 'Refresh content packs from upstream sources'
+          title: 'Refresh content packs'
+          body: |
+            Monthly run of `npm run data:update` (JMdict, KANJIDIC2, KRADFILE, KanjiVG, Tatoeba, JLPT lists) and `npm run fonts:build`.
+            The spot-check result is appended to PROGRESS.md. Review the diff of `public/packs/ja/provenance.json` before merging.
+          branch: data/refresh
+          delete-branch: true

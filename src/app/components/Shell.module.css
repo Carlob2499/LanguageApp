@@ -1,71 +1,43 @@
 .shell {
-  display: grid;
-  grid-template-rows: 1fr auto;
+  position: relative;
   min-height: 100dvh;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgb(154 47 30 / 0.22), transparent 60%),
+    radial-gradient(80% 60% at 100% 100%, rgb(217 164 65 / 0.08), transparent 60%);
+}
+
+html[data-theme='light'] .shell {
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgb(217 164 65 / 0.18), transparent 60%),
+    radial-gradient(80% 60% at 100% 100%, rgb(154 47 30 / 0.08), transparent 60%);
 }
 
 .main {
-  padding: calc(var(--sp-5) + var(--safe-top)) calc(var(--sp-4) + var(--safe-right)) var(--sp-6)
-    calc(var(--sp-4) + var(--safe-left));
+  position: relative;
+  z-index: 2;
+  padding: calc(var(--sp-5) + var(--safe-top)) calc(var(--sp-4) + var(--safe-right))
+    calc(6.5rem + var(--safe-bottom)) calc(var(--sp-4) + var(--safe-left));
   max-width: 44rem;
   width: 100%;
   margin-inline: auto;
+}
+
+.shell[data-focused='true'] .main {
+  padding-bottom: calc(var(--sp-5) + var(--safe-bottom));
 }
 
 .main:focus {
   outline: none;
 }
 
-.tabs {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  justify-content: space-around;
-  gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-3) calc(var(--sp-2) + var(--safe-bottom));
-  background: var(--glass);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  border-top: 1px solid var(--hairline);
-}
-
-.tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--tap);
-  min-width: 5.5rem;
-  padding: 0 var(--sp-3);
-  border-radius: var(--radius-m);
-  color: var(--fg-muted);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: var(--fs-small);
-  letter-spacing: 0.01em;
-  transition:
-    color var(--spring-default),
-    background-color var(--spring-default);
-}
-
-.tab:active {
-  transform: scale(0.97);
-}
-
-.tab[aria-current='page'] {
-  color: var(--fg);
-  background: rgb(217 164 65 / 0.14);
-  box-shadow: inset 0 -2px 0 var(--accent);
-}
-
 @media (min-width: 900px) {
-  .shell {
-    grid-template-rows: auto 1fr;
+  .main {
+    padding-top: calc(5.5rem + var(--safe-top));
+    padding-bottom: var(--sp-7);
+    max-width: 64rem;
   }
 
-  .tabs {
-    order: -1;
-    position: static;
-    justify-content: flex-start;
-    padding-inline: var(--sp-6);
+  .shell[data-focused='true'] .main {
+    padding-top: calc(var(--sp-5) + var(--safe-top));
   }
 }

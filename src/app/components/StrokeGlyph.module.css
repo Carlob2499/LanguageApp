@@ -1,0 +1,71 @@
+.glyph {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  display: block;
+}
+
+.stroke,
+.dim {
+  fill: none;
+  stroke-width: 5.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.stroke {
+  stroke: var(--glyph-ink, var(--fg));
+}
+
+.dim {
+  stroke: var(--fg-faint);
+  opacity: 0.35;
+}
+
+.animated .stroke,
+.animated .dim {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: write 400ms cubic-bezier(0.3, 0.7, 0.2, 1) forwards;
+}
+
+.animated .number {
+  opacity: 0;
+  animation: appear 200ms ease-out forwards;
+}
+
+@keyframes write {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+
+.number {
+  font-family: var(--font-latin);
+  font-size: 8px;
+  font-weight: 600;
+  fill: var(--k-gold);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated .stroke,
+  .animated .dim,
+  .animated .number {
+    animation: none;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  .animated .dim {
+    opacity: 0.35;
+  }
+}

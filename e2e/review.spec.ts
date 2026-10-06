@@ -40,7 +40,7 @@ test.describe('onboarding and first review session', () => {
     page.on('pageerror', (e) => errors.push(e.message))
 
     await onboard(page)
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Learn something new')
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Meet something new')
     await page.getByRole('link', { name: 'Learn new cards' }).click()
     await expect(page).toHaveURL(/\/review$/)
 

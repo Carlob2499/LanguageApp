@@ -1,0 +1,24 @@
+.button {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
+  background: var(--bg-raised);
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition:
+    color var(--spring-default),
+    box-shadow var(--spring-default),
+    transform 120ms ease-out;
+}
+
+.button:active {
+  transform: scale(0.94);
+}
+
+.playing {
+  color: var(--accent-text, var(--k-gold));
+  box-shadow: 0 0 0 4px rgb(217 164 65 / 0.18);
+}

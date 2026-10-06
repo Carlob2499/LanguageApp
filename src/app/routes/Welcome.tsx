@@ -1,9 +1,13 @@
-import { useNavigate } from '@/app/router/index'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@/app/components/Button'
+import { Crack } from '@/app/components/Crack'
+import { StrokeGlyph } from '@/app/components/StrokeGlyph'
+import { useNavigate } from '@/app/router/index'
 import { useSettings } from '@/app/study/settings'
 import { LEVELS, type Level } from '@/packs/ja/levels'
+import { strokesFor } from '@/packs/ja/loader'
+import type { StrokeItem } from '@/packs/ja/types'
 
 import styles from './Welcome.module.css'
 
@@ -21,6 +25,20 @@ export function WelcomeRoute() {
   const [step, setStep] = useState<0 | 1 | 2>(0)
   const [level, setLevel] = useState<Level>('N5')
   const [newPerDay, setNewPerDay] = useState(10)
+  const [gold, setGold] = useState<StrokeItem>()
+  const [replay, setReplay] = useState(0)
+
+  // The hero's glyph and tiles mount after the first paint, inside a box of fixed height, so the
+  // headline paints first and nothing shifts when the decoration arrives.
+  const [showHero, setShowHero] = useState(false)
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setShowHero(true), 60)
+    void strokesFor('金', 'N5')
+      .then((s) => s ?? strokesFor('金', 'N4'))
+      .then((s) => setGold(s))
+    return () => window.clearTimeout(id)
+  }, [])
 
   async function finish() {
     await update({ onboarded: true, level, newPerDay })
@@ -31,28 +49,63 @@ export function WelcomeRoute() {
     <section className={styles.welcome} aria-live="polite">
       {step === 0 && (
         <>
-          <svg className={styles.mark} viewBox="0 0 320 200" aria-hidden="true" focusable="false">
-            <path
-              className={styles.markCrack}
-              d="M18 150 C70 120 95 98 118 90 C150 80 160 66 162 46 C164 30 150 22 156 8"
-            />
-            <path
-              className={styles.markGold}
-              d="M18 150 C70 120 95 98 118 90 C150 80 160 66 162 46 C164 30 150 22 156 8"
-            />
-            <path
-              className={styles.markCrack}
-              d="M118 90 C150 100 190 118 214 146 C230 165 248 180 300 190"
-            />
-            <path
-              className={styles.markGold}
-              d="M118 90 C150 100 190 118 214 146 C230 165 248 180 300 190"
-            />
-          </svg>
-          <h1>Kintsugi</h1>
+          <div className={styles.hero} data-ready={showHero ? 'true' : undefined}>
+            {showHero && (
+              <>
+                <div
+                  className={styles.glyphWrap}
+                  onClick={() => setReplay((n) => n + 1)}
+                  role="presentation"
+                >
+                  {gold ? (
+                    <StrokeGlyph
+                      item={gold}
+                      speed={380}
+                      replayKey={replay}
+                      className={styles.glyph}
+                      label="金, gold, drawn stroke by stroke"
+                    />
+                  ) : (
+                    <span className={`${styles.glyphText} ja-display`} lang="ja">
+                      金
+                    </span>
+                  )}
+                </div>
+                <div className={styles.journeyWrap}>
+                  <ol
+                    className={styles.journey}
+                    aria-label="How Kintsugi works: meet a kanji, forget it and it cracks, recall it and the crack turns gold"
+                  >
+                    <li className={styles.tile} aria-hidden="true">
+                      <span className={styles.tileKanji} lang="ja">
+                        日
+                      </span>
+                    </li>
+                    <li className={`${styles.tile} ${styles.tileCracked}`} aria-hidden="true">
+                      <Crack seed="welcome" gold={0} />
+                      <span className={styles.tileKanji} lang="ja">
+                        日
+                      </span>
+                    </li>
+                    <li className={`${styles.tile} ${styles.tileGold}`} aria-hidden="true">
+                      <Crack seed="welcome" gold={1} />
+                      <span className={styles.tileKanji} lang="ja">
+                        日
+                      </span>
+                    </li>
+                  </ol>
+                  <p className={styles.journeyCaption} aria-hidden="true">
+                    Meet · Crack · Repair
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+          <p className={styles.eyebrow}>Kintsugi</p>
+          <h1>Mistakes, repaired in gold.</h1>
           <p className={styles.lede}>
-            Learn Japanese kanji and words, one short session a day. Every mistake you make here
-            gets repaired in gold.
+            Kanji and words from kana to N1, one short session a day. Every kanji writes itself in
+            front of you, stroke by stroke.
           </p>
           <Button variant="primary" size="large" onClick={() => setStep(1)}>
             Start

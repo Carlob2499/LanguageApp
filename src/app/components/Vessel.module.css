@@ -1,0 +1,44 @@
+.vessel {
+  display: block;
+  overflow: visible;
+}
+
+.body {
+  filter: drop-shadow(0 8px 10px rgb(0 0 0 / 0.5));
+}
+
+.fill {
+  transition: y 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.wave {
+  transition: d 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.seam {
+  fill: none;
+  stroke: var(--k-gold);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+}
+
+.rim {
+  fill: #2a1512;
+  stroke: rgb(243 237 227 / 0.18);
+  stroke-width: 1;
+}
+
+.outline {
+  fill: none;
+  stroke: rgb(243 237 227 / 0.14);
+  stroke-width: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill,
+  .wave {
+    transition: none;
+  }
+}

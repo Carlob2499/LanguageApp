@@ -1,0 +1,7 @@
+Sentence recordings from Tatoeba contributors (https://tatoeba.org). One line per clip: id, speaker, licence.
+12697	Mizu	CC BY-NC 4.0
+12719	yomi	CC BY-NC 4.0
+12516	yomi	CC BY-NC 4.0
+12733	Mizu	CC BY-NC 4.0
+12725	yomi	CC BY-NC 4.0
+12199	Mizu	CC BY-NC 4.0

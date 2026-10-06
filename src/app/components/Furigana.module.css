@@ -1,0 +1,21 @@
+.ruby {
+  ruby-position: over;
+  ruby-align: center;
+}
+
+.toggle {
+  cursor: pointer;
+  border-radius: var(--radius-s);
+}
+
+.rtVisible,
+.rtHidden {
+  font-size: 0.5em;
+  color: var(--accent-text, var(--k-gold));
+  transition: opacity 150ms ease;
+  letter-spacing: 0.02em;
+}
+
+.rtHidden {
+  opacity: 0;
+}

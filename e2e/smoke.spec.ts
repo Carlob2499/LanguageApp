@@ -16,7 +16,7 @@ test.describe('app shell', () => {
     await expect(page).toHaveTitle('Kintsugi')
     // A fresh install lands on the welcome flow.
     await expect(page).toHaveURL(/\/welcome$/)
-    await expect(page.getByRole('heading', { level: 1, name: 'Kintsugi' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /repaired in gold/ })).toBeVisible()
 
     await page.goto('/about')
     await expect(page.getByRole('heading', { level: 1, name: 'Sources' })).toBeVisible()
