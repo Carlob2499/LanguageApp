@@ -12,6 +12,7 @@ export default tseslint.config(
       'dist',
       'dev-dist',
       'reports',
+      '.prerender',
       'test-results',
       'playwright-report',
       'public/packs',

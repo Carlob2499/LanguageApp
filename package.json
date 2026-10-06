@@ -9,7 +9,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "run-s build:prerender build:client",
+    "build:prerender": "vite build --ssr src/prerender.tsx --outDir .prerender --emptyOutDir",
+    "build:client": "vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
     "typecheck": "run-s typecheck:app typecheck:node",
     "typecheck:app": "tsc -p tsconfig.app.json --noEmit",

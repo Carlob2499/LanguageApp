@@ -16,6 +16,7 @@ const RUNTIME_VERSION = 'v1'
 const PACKS_CACHE = `kintsugi-packs-${RUNTIME_VERSION}`
 const FONTS_CACHE = `kintsugi-fonts-${RUNTIME_VERSION}`
 const MEDIA_CACHE = `kintsugi-media-${RUNTIME_VERSION}`
+const LAZY_CACHE = `kintsugi-lazy-${RUNTIME_VERSION}`
 
 // Activation is deferred: the page posts SKIP_WAITING only when no review is open.
 self.addEventListener('message', (event: ExtendableMessageEvent) => {
@@ -70,6 +71,21 @@ registerRoute(
     cacheName: FONTS_CACHE,
     plugins: [
       new ExpirationPlugin({ maxEntries: 64, maxAgeSeconds: 365 * 24 * 3600 }) as WorkboxPlugin,
+    ],
+  }),
+)
+
+// Hashed chunks left out of the precache (the 3D scene): immutable, cache first, bounded.
+registerRoute(
+  ({ url, request }) =>
+    request.method === 'GET' &&
+    url.origin === self.location.origin &&
+    url.pathname.startsWith('/assets/') &&
+    /\.js$/.test(url.pathname),
+  new CacheFirst({
+    cacheName: LAZY_CACHE,
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 8, maxAgeSeconds: 365 * 24 * 3600 }) as WorkboxPlugin,
     ],
   }),
 )

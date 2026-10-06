@@ -12,7 +12,7 @@ const scanDirs = [
   'README.md',
   'REAL-DEVICE-CHECKLIST.md',
 ]
-const skipDirs = new Set(['node_modules', 'dist', 'dev-dist', 'packs', 'icons'])
+const skipDirs = new Set(['node_modules', 'dist', 'dev-dist', '.prerender', 'packs', 'icons'])
 // `placeholder=` is the HTML attribute and `::placeholder` its CSS pseudo-element; both are legitimate.
 const patterns = [/lorem/i, /\bTODO\b/, /\bTBD\b/, /(?<!:)placeholder(?!=)/i]
 const allowFiles = new Set(['scripts/check-placeholders.mjs'])

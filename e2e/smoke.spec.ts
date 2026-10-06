@@ -41,4 +41,31 @@ test.describe('app shell', () => {
     expect(sw.ok()).toBe(true)
     expect(sw.headers()['content-type']).toContain('javascript')
   })
+
+  test('the first screen is in the HTML before any script, and hidden for returning learners', async ({
+    page,
+    request,
+  }) => {
+    const html = await (await request.get('/')).text()
+    expect(html).toContain('Mistakes, repaired in gold.')
+    expect(html).toContain('data-prerender')
+    // No module script tag for the preload scanner: the loader adds it after the first paint.
+    expect(html).not.toMatch(/<script type="module"[^>]*src=/)
+    await page.goto('/')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mistakes, repaired in gold.')
+    await expect(page.locator('[data-prerender]')).toHaveCount(0)
+    await expect(page.locator('html')).not.toHaveAttribute('data-returning', '')
+    await page.evaluate(() =>
+      localStorage.setItem(
+        'kintsugi.settings',
+        JSON.stringify({ onboarded: true, level: 'N5', kanaReady: true, theme: 'light' }),
+      ),
+    )
+    await page.goto('/')
+    await expect(page.locator('html')).toHaveAttribute('data-returning', '')
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+    await expect(page.getByRole('heading', { level: 1 })).not.toHaveText(
+      'Mistakes, repaired in gold.',
+    )
+  })
 })

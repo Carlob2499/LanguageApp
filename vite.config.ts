@@ -1,4 +1,5 @@
-import { fileURLToPath, URL } from 'node:url'
+import { existsSync } from 'node:fs'
+import { fileURLToPath, pathToFileURL, URL } from 'node:url'
 
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
@@ -36,10 +37,71 @@ function inlineEntryCss(): Plugin {
   }
 }
 
-export default defineConfig({
+/**
+ * Puts the prerendered welcome markup (built first by `vite build --ssr src/prerender.tsx`)
+ * inside #root, so the first paint is the real headline rather than an empty page. A returning
+ * learner never sees it: the boot script in index.html marks the document and CSS hides it.
+ */
+function prerenderWelcome(): Plugin {
+  return {
+    name: 'kintsugi:prerender-welcome',
+    apply: 'build',
+    enforce: 'post',
+    transformIndexHtml: {
+      order: 'post',
+      async handler(html, ctx) {
+        if (!ctx.bundle) return html
+        const built = fileURLToPath(new URL('./.prerender/prerender.js', import.meta.url))
+        if (!existsSync(built)) {
+          throw new Error('Run "vite build --ssr src/prerender.tsx --outDir .prerender" first')
+        }
+        const { render } = (await import(pathToFileURL(built).href)) as { render: () => string }
+        return html.replace(
+          '<div id="root"></div>',
+          `<div id="root"><div data-prerender>${render()}</div></div>`,
+        )
+      },
+    },
+  }
+}
+
+/**
+ * The entry module and its preloads are requested one frame after the prerendered markup has
+ * painted, from the small loader at the end of index.html, instead of by the preload scanner.
+ * The first paint then competes with nothing; the scripts start a few milliseconds later.
+ */
+function deferEntryScripts(): Plugin {
+  return {
+    name: 'kintsugi:defer-entry-scripts',
+    apply: 'build',
+    enforce: 'post',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        if (!ctx.bundle) return html
+        const scriptTag = /<script type="module" crossorigin src="([^"]+)"><\/script>\s*/
+        const preloadTag = /<link rel="modulepreload" crossorigin href="([^"]+)">\s*/g
+        const entry = scriptTag.exec(html)?.[1]
+        if (!entry) throw new Error('index.html has no module entry script to defer')
+        const preloads = [...html.matchAll(preloadTag)].map((m) => m[1])
+        return html
+          .replace(scriptTag, '')
+          .replace(preloadTag, '')
+          .replace(
+            'data-entry="" data-preload=""',
+            `data-entry="${entry}" data-preload="${preloads.join(',')}"`,
+          )
+      },
+    },
+  }
+}
+
+export default defineConfig(({ isSsrBuild }) => ({
   plugins: [
     react(),
     inlineEntryCss(),
+    prerenderWelcome(),
+    deferEntryScripts(),
     VitePWA({
       strategies: 'injectManifest',
       srcDir: 'src',
@@ -71,6 +133,9 @@ export default defineConfig({
       },
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,webmanifest}'],
+        // The 3D scene's chunk is fetched on first use and kept by the runtime cache; precaching
+        // it would cost every install 880 kB for a screen most sessions never open.
+        globIgnores: ['**/three-*.js', '**/Assembly-*.js'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
       devOptions: { enabled: false },
@@ -82,6 +147,10 @@ export default defineConfig({
   build: {
     target: 'es2022',
     sourcemap: false,
+    // The prerender build only needs its one module, not a copy of public/.
+    copyPublicDir: !isSsrBuild,
+    // three alone is 880 kB before gzip; it lives in a lazy chunk with its own size-limit budget.
+    chunkSizeWarningLimit: 1000,
     rolldownOptions: {
       output: {
         codeSplitting: {
@@ -105,4 +174,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

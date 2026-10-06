@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/app/components/Button'
-import { Crack } from '@/app/components/Crack'
-import { StrokeGlyph } from '@/app/components/StrokeGlyph'
 import { useNavigate } from '@/app/router/index'
 import { useSettings } from '@/app/study/settings'
 import { LEVELS, type Level } from '@/packs/ja/levels'
@@ -10,6 +8,7 @@ import { strokesFor } from '@/packs/ja/loader'
 import type { StrokeItem } from '@/packs/ja/types'
 
 import styles from './Welcome.module.css'
+import { WelcomeIntro } from './WelcomeIntro'
 
 const LEVEL_BLURB: Record<Level, string> = {
   N5: 'Starting out. Everyday words and the first 80 kanji.',
@@ -54,69 +53,13 @@ export function WelcomeRoute() {
   return (
     <section className={styles.welcome} aria-live="polite">
       {step === 0 && (
-        <>
-          <div className={styles.hero} data-ready={showHero ? 'true' : undefined}>
-            {showHero && (
-              <>
-                <div
-                  className={styles.glyphWrap}
-                  onClick={() => setReplay((n) => n + 1)}
-                  role="presentation"
-                >
-                  {gold ? (
-                    <StrokeGlyph
-                      item={gold}
-                      speed={380}
-                      replayKey={replay}
-                      className={styles.glyph}
-                      label="金, gold, drawn stroke by stroke"
-                    />
-                  ) : (
-                    <span className={`${styles.glyphText} ja-display`} lang="ja">
-                      金
-                    </span>
-                  )}
-                </div>
-                <div className={styles.journeyWrap}>
-                  <ol
-                    className={styles.journey}
-                    aria-label="How Kintsugi works: meet a kanji, forget it and it cracks, recall it and the crack turns gold"
-                  >
-                    <li className={styles.tile} aria-hidden="true">
-                      <span className={styles.tileKanji} lang="ja">
-                        日
-                      </span>
-                    </li>
-                    <li className={`${styles.tile} ${styles.tileCracked}`} aria-hidden="true">
-                      <Crack seed="welcome" gold={0} />
-                      <span className={styles.tileKanji} lang="ja">
-                        日
-                      </span>
-                    </li>
-                    <li className={`${styles.tile} ${styles.tileGold}`} aria-hidden="true">
-                      <Crack seed="welcome" gold={1} />
-                      <span className={styles.tileKanji} lang="ja">
-                        日
-                      </span>
-                    </li>
-                  </ol>
-                  <p className={styles.journeyCaption} aria-hidden="true">
-                    Meet · Crack · Repair
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-          <p className={styles.eyebrow}>Kintsugi</p>
-          <h1>Mistakes, repaired in gold.</h1>
-          <p className={styles.lede}>
-            Kanji and words from kana to N1, one short session a day. Every kanji writes itself in
-            front of you, stroke by stroke.
-          </p>
-          <Button variant="primary" size="large" onClick={() => setStep('kana')}>
-            Start
-          </Button>
-        </>
+        <WelcomeIntro
+          showHero={showHero}
+          gold={gold}
+          replay={replay}
+          onReplay={() => setReplay((n) => n + 1)}
+          onStart={() => setStep('kana')}
+        />
       )}
       {step === 'kana' && (
         <>

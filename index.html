@@ -39,10 +39,45 @@
         margin: 0;
         min-height: 100dvh;
       }
+      html[data-returning] [data-prerender] {
+        display: none;
+      }
     </style>
+    <script>
+      try {
+        var s = JSON.parse(localStorage.getItem('kintsugi.settings') || '{}')
+        if (s.onboarded) document.documentElement.setAttribute('data-returning', '')
+        if (s.theme === 'dark' || s.theme === 'light')
+          document.documentElement.setAttribute('data-theme', s.theme)
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script data-entry="" data-preload="">
+      ;(function () {
+        var d = document.currentScript.dataset
+        if (!d.entry) return
+        function go() {
+          d.preload.split(',').forEach(function (h) {
+            if (!h) return
+            var l = document.createElement('link')
+            l.rel = 'modulepreload'
+            l.crossOrigin = ''
+            l.href = h
+            document.head.appendChild(l)
+          })
+          var s = document.createElement('script')
+          s.type = 'module'
+          s.crossOrigin = ''
+          s.src = d.entry
+          document.head.appendChild(s)
+        }
+        requestAnimationFrame(function () {
+          setTimeout(go, 0)
+        })
+      })()
+    </script>
   </body>
 </html>

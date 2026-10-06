@@ -67,6 +67,13 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - Tests: 63 unit, 18 e2e (tracing with synthetic pointer paths sampled from the pack, 3D-or-flat render, reduced-motion fallback with axe, memory aid across reload). Screenshots in reports/screenshots/m4 (dark, plus reduced-motion fallback).
 - Deferred to M5: keyboard shortcuts for the modes (T/A), the richer desktop scene (environment reflections, hover highlights across panes).
 
+### 2026-10-06 — First paint without JavaScript
+
+- CI run 5 (M3) passed every step but Lighthouse LCP (2760 ms on the GitHub runner, median of 5, right after the e2e suite). Root cause: the whole first paint waited for React (index + vendor, about 80 kB gzip, then evaluation at 4× CPU slowdown).
+- Fix: `vite build --ssr src/prerender.tsx` renders the welcome screen's static part (`WelcomeIntro`, shell markup, same CSS-module class names) and the client build puts it inside `#root`; React replaces it on first render with identical markup (CLS 0.01). A 300-byte inline boot script marks returning learners (`html[data-returning]`, which hides the prerender) and applies the saved theme; a second inline loader adds the module entry and its preloads one frame after the first paint, so nothing competes with it. Both inline scripts are allowed by hash in the CSP (`scripts/csp.test.ts` keeps the hashes in sync). The prerendered Start button carries `aria-disabled` until the live tree takes over.
+- Observed first contentful paint on the preview: 119 ms. Lighthouse (simulated slow 4G, median of 5): performance 0.99, LCP 1854 ms, TBT 0. The remaining simulated time is the Latin font files (96 kB, `font-display: optional`), which Lighthouse counts because they finish before the paint on a local server.
+- Also: the 3D chunk is no longer precached by the service worker (runtime cache instead), keeping the install at 754 KiB.
+
 ## Spot-checks
 
 (none yet)
