@@ -1,14 +1,16 @@
-import { Canvas, useFrame, type ThreeEvent } from '@react-three/fiber'
+import { Canvas, useFrame, type RootState, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
 import {
   CatmullRomCurve3,
   Color,
   type Group,
   MeshPhysicalMaterial,
+  PMREMGenerator,
   SphereGeometry,
   TubeGeometry,
   Vector3,
 } from 'three'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 
 import type { Piece } from './pieces'
 
@@ -25,6 +27,7 @@ const GOLD = new Color('#d9a441')
 interface Materials {
   lacquer: MeshPhysicalMaterial
   gold: MeshPhysicalMaterial
+  warm: MeshPhysicalMaterial
 }
 
 function makeMaterials(): Materials {
@@ -44,7 +47,19 @@ function makeMaterials(): Materials {
     emissive: GOLD,
     emissiveIntensity: 0.18,
   })
-  return { lacquer, gold }
+  // Hovered: lacquer with a gold sheen, before a tap commits.
+  const warm = new MeshPhysicalMaterial({
+    color: LACQUER_LIGHT,
+    roughness: 0.2,
+    metalness: 0.1,
+    clearcoat: 1,
+    clearcoatRoughness: 0.1,
+    sheen: 1,
+    sheenColor: GOLD,
+    emissive: GOLD,
+    emissiveIntensity: 0.06,
+  })
+  return { lacquer, gold, warm }
 }
 
 function PieceMesh({
@@ -88,13 +103,23 @@ function PieceMesh({
     g.position.set(piece.explode[0] * e, piece.explode[1] * e, piece.explode[2] * e)
     g.rotation.set(piece.tilt[0] * e, piece.tilt[1] * e, 0)
   })
-  const material = highlighted ? materials.gold : materials.lacquer
+  const [hover, setHover] = useState(false)
+  const material = highlighted ? materials.gold : hover ? materials.warm : materials.lacquer
   return (
     <group
       ref={group}
       onClick={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation()
         onSelect(piece.index)
+      }}
+      onPointerOver={(e: ThreeEvent<PointerEvent>) => {
+        e.stopPropagation()
+        setHover(true)
+        document.body.style.cursor = 'pointer'
+      }}
+      onPointerOut={() => {
+        setHover(false)
+        document.body.style.cursor = ''
       }}
     >
       {geometry.tubes.map((geo, i) => (
@@ -157,6 +182,31 @@ export function Assembly({
   const host = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(true)
   const drag = useRef<{ x: number; start: number; moved: boolean } | undefined>(undefined)
+  const studio = useRef<{ dispose: () => void } | undefined>(undefined)
+
+  /**
+   * A neutral studio environment so the clearcoat has something to reflect. Built a moment after
+   * the first frame: prefiltering costs tens of milliseconds on a phone GPU and seconds on a
+   * software renderer, and the pieces should be on screen before that work starts.
+   */
+  function onCreated({ gl, scene }: RootState) {
+    const id = window.setTimeout(() => {
+      const pmrem = new PMREMGenerator(gl)
+      const texture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+      scene.environment = texture
+      scene.environmentIntensity = 0.55
+      studio.current = {
+        dispose() {
+          scene.environment = null
+          texture.dispose()
+          pmrem.dispose()
+        },
+      }
+    }, 400)
+    studio.current = { dispose: () => window.clearTimeout(id) }
+  }
+
+  useEffect(() => () => studio.current?.dispose(), [])
 
   useEffect(() => {
     targetRef.current = exploded ? 0 : 1
@@ -166,6 +216,8 @@ export function Assembly({
     () => () => {
       materials.lacquer.dispose()
       materials.gold.dispose()
+      materials.warm.dispose()
+      document.body.style.cursor = ''
     },
     [materials],
   )
@@ -213,6 +265,7 @@ export function Assembly({
         camera={{ position: [0, 0, 22], fov: 36 }}
         gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
         frameloop={active ? 'always' : 'never'}
+        onCreated={onCreated}
         onPointerMissed={() => onSelect(undefined)}
         style={{ background: 'transparent' }}
       >

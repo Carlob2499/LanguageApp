@@ -12,6 +12,7 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-user-drag: none;
   cursor: crosshair;
   border-radius: var(--radius-l);
   background:

@@ -42,8 +42,17 @@ test.describe('kanji study', () => {
     await page.getByRole('radio', { name: 'Trace' }).click()
     const surface = page.getByTestId('trace-surface')
     await surface.scrollIntoViewIfNeeded()
-    await page.waitForTimeout(500)
-    const box = (await surface.boundingBox())!
+    // The stage scrolls itself into view with smooth scrolling, which starts a moment after the
+    // mode changes and takes longer in WebKit; draw only once the surface has stopped moving.
+    await page.waitForTimeout(700)
+    let box = (await surface.boundingBox())!
+    for (let still = 0; still < 3; ) {
+      await page.waitForTimeout(200)
+      const next = (await surface.boundingBox())!
+      if (next.x === box.x && next.y === box.y) still++
+      else still = 0
+      box = next
+    }
     const strokes = strokePoints('日')
     const toPage = ([x, y]: number[]) =>
       [box.x + (x! / 109) * box.width, box.y + (y! / 109) * box.height] as const
@@ -71,7 +80,8 @@ test.describe('kanji study', () => {
       page.getByTestId('assembly-3d').or(page.getByTestId('assembly-flat')),
     ).toBeVisible()
     await page.getByRole('button', { name: /^寺/ }).first().click()
-    await expect(page.getByText('also appears in')).toBeVisible()
+    // Five kanji packs load for this list while the software GL renderer is still busy.
+    await expect(page.getByText('also appears in')).toBeVisible({ timeout: 20_000 })
     await expect(page.getByRole('link', { name: /^持/ })).toBeVisible()
   })
 

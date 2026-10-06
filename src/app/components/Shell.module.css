@@ -41,3 +41,9 @@ html[data-theme='light'] .shell {
     padding-top: calc(var(--sp-5) + var(--safe-top));
   }
 }
+
+@media (min-width: 1100px) {
+  .main[data-wide='true'] {
+    max-width: 92rem;
+  }
+}

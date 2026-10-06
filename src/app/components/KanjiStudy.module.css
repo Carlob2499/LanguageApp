@@ -373,3 +373,43 @@ html[data-theme='light'] .heroGlyph {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.modeKey {
+  display: none;
+  font-family: var(--font-latin);
+  font-size: var(--fs-caption);
+  padding: 0 0.3rem;
+  border-radius: 0.3rem;
+  border: 1px solid var(--hairline);
+  color: var(--fg-faint);
+  margin-left: var(--sp-1);
+}
+
+.side {
+  display: grid;
+  gap: var(--sp-5);
+}
+
+@media (min-width: 900px) and (hover: hover) {
+  .modeKey {
+    display: inline-block;
+  }
+}
+
+/* Wide, on its own page: study on the left, words and sentences alongside. */
+@media (min-width: 1100px) {
+  .detail:not([data-embedded='true']) {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    column-gap: var(--sp-7);
+    align-items: start;
+  }
+
+  .detail:not([data-embedded='true']) > .header {
+    grid-column: 1 / -1;
+  }
+
+  .detail:not([data-embedded='true']) > .side {
+    grid-column: 2;
+    grid-row: 2 / span 4;
+  }
+}

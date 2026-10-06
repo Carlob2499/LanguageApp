@@ -42,6 +42,7 @@ export function Trace({ item, onComplete }: TraceProps) {
   const [live, setLive] = useState<Point[]>([])
   const [miss, setMiss] = useState<{ points: Point[]; key: number }>()
   const drawing = useRef<Point[]>([])
+  const pointer = useRef<number | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
   const completed = useRef(false)
 
@@ -55,7 +56,7 @@ export function Trace({ item, onComplete }: TraceProps) {
     if (!done) completed.current = false
   }, [done, onComplete, state])
 
-  function point(e: ReactPointerEvent<SVGSVGElement>): Point {
+  function point(e: { clientX: number; clientY: number }): Point {
     const rect = svgRef.current!.getBoundingClientRect()
     return [
       ((e.clientX - rect.left) / rect.width) * BOX,
@@ -63,28 +64,12 @@ export function Trace({ item, onComplete }: TraceProps) {
     ]
   }
 
-  function onDown(e: ReactPointerEvent<SVGSVGElement>) {
-    if (done || e.button !== 0) return
-    e.currentTarget.setPointerCapture(e.pointerId)
-    drawing.current = [point(e)]
-    setLive(drawing.current)
-  }
-
-  function onMove(e: ReactPointerEvent<SVGSVGElement>) {
-    if (drawing.current.length === 0 || !e.currentTarget.hasPointerCapture(e.pointerId)) return
-    const p = point(e)
-    const last = drawing.current[drawing.current.length - 1]!
-    if (Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.8) return
-    drawing.current = [...drawing.current, p]
-    setLive(drawing.current)
-  }
-
-  function onUp(e: ReactPointerEvent<SVGSVGElement>) {
-    if (drawing.current.length === 0) return
-    e.currentTarget.releasePointerCapture(e.pointerId)
+  function finish() {
     const drawn = drawing.current
+    pointer.current = null
     drawing.current = []
     setLive([])
+    if (drawn.length === 0) return
     const target = targets[state.index]
     if (!target) return
     const result = matchStroke(drawn, target)
@@ -94,6 +79,56 @@ export function Trace({ item, onComplete }: TraceProps) {
       setMiss({ points: drawn, key: next.attempts })
       if (next.misses >= HINT_AFTER_MISSES) setHint({ stroke: state.index, key: next.attempts })
     }
+  }
+
+  // WebKit can drop pointer capture before pointerup; while a stroke is being drawn, the window
+  // hears the release regardless. Re-subscribed each render so the handler sees current state.
+  useEffect(() => {
+    if (live.length === 0) return
+    function onWindowUp(e: PointerEvent) {
+      if (pointer.current !== e.pointerId) return
+      if (drawing.current.length > 0) drawing.current = [...drawing.current, point(e)]
+      finish()
+    }
+    window.addEventListener('pointerup', onWindowUp)
+    window.addEventListener('pointercancel', onWindowUp)
+    return () => {
+      window.removeEventListener('pointerup', onWindowUp)
+      window.removeEventListener('pointercancel', onWindowUp)
+    }
+  })
+
+  function onDown(e: ReactPointerEvent<SVGSVGElement>) {
+    if (done || e.button !== 0 || pointer.current !== null) return
+    // Stops WebKit from turning the held button into a native drag or text selection mid-stroke.
+    e.preventDefault()
+    pointer.current = e.pointerId
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {
+      // Capture is a convenience; the window listener below covers its absence.
+    }
+    drawing.current = [point(e)]
+    setLive(drawing.current)
+  }
+
+  function onMove(e: ReactPointerEvent<SVGSVGElement>) {
+    if (pointer.current !== e.pointerId || drawing.current.length === 0) return
+    const p = point(e)
+    const last = drawing.current[drawing.current.length - 1]!
+    if (Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.8) return
+    drawing.current = [...drawing.current, p]
+    setLive(drawing.current)
+  }
+
+  function onUp(e: ReactPointerEvent<SVGSVGElement>) {
+    if (pointer.current !== e.pointerId) return
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {
+      // Already released.
+    }
+    finish()
   }
 
   function showHint() {
@@ -130,6 +165,7 @@ export function Trace({ item, onComplete }: TraceProps) {
         onPointerMove={onMove}
         onPointerUp={onUp}
         onPointerCancel={onUp}
+        onDragStart={(e) => e.preventDefault()}
       >
         {/* Guide: every stroke faint, the current one brighter, unless tracing from memory. */}
         {!fromMemory &&

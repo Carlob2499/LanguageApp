@@ -14,7 +14,7 @@ const TABS: Array<{ to: string; label: string; icon: IconName; exact: boolean }>
  * Floating glass pill with a gold underglow that glides to the active tab. The glide is a CSS
  * transition on a custom property, so the tab bar costs no animation library in the first paint.
  */
-export function TabBar() {
+export function TabBar({ onSearch }: { onSearch?: (() => void) | undefined }) {
   const { pathname } = useLocation()
   const activeIndex = Math.max(
     0,
@@ -34,6 +34,13 @@ export function TabBar() {
           </Link>
         ))}
       </div>
+      {onSearch && (
+        <button type="button" className={styles.search} onClick={onSearch}>
+          <Icon name="spark" size={18} />
+          <span>Search</span>
+          <kbd className={styles.kbd}>⌘K</kbd>
+        </button>
+      )}
     </nav>
   )
 }

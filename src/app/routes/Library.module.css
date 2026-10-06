@@ -187,3 +187,59 @@ html[data-theme='light'] .cell {
   color: var(--accent-text, var(--k-gold));
   font-weight: 600;
 }
+
+.listPane {
+  display: grid;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.cell[data-cursor='true'],
+.row[data-cursor='true'] {
+  outline: 2px solid rgb(217 164 65 / 0.55);
+  outline-offset: 2px;
+}
+
+.cell[aria-current='true'] {
+  border-color: var(--k-gold);
+  box-shadow: 0 0 0 1px var(--k-gold);
+}
+
+.pane {
+  display: none;
+}
+
+.paneEmpty {
+  color: var(--fg-faint);
+  padding: var(--sp-6);
+  text-align: center;
+}
+
+.paneEmpty kbd {
+  font-family: var(--font-latin);
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--hairline);
+  border-radius: 0.3rem;
+}
+
+/* Split view: the list keeps its width; the selected kanji studies alongside. */
+.library[data-split='true'] {
+  grid-template-columns: minmax(22rem, 30rem) minmax(0, 1fr);
+  column-gap: var(--sp-7);
+  align-items: start;
+}
+
+.library[data-split='true'] .pane {
+  display: block;
+  position: sticky;
+  top: calc(5.5rem + var(--safe-top));
+  max-height: calc(100dvh - 6.5rem);
+  overflow-y: auto;
+  padding: 0 var(--sp-4) var(--sp-6);
+  border-left: 1px solid var(--hairline);
+  scrollbar-width: thin;
+}
+
+.library[data-split='true'] .grid {
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+}

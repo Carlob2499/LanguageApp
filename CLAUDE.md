@@ -34,6 +34,8 @@ Installable PWA for learning Japanese kanji and vocabulary from kana to JLPT N1.
 - Vercel: `vercel.json` carries the CSP, cache headers and the SPA rewrite. `sw.js` and `index.html` are `max-age=0`.
 - ts-fsrs cards serialise `Date`s as ISO strings; rehydrate on load.
 - three is pinned to 0.182.0 on purpose: 0.183+ logs a `THREE.Clock` deprecation warning from inside react-three-fiber 9.8, and the console must stay clean. Bump both together once r3f moves to `Timer`.
+- Global keys live in `Shell.tsx` (⌘K, ?); route keys in the route (`Library.tsx`: / J K Enter; `KanjiStudy.tsx`: S T A R; `Review.tsx`: Space 1–4 Enter U Esc). Every handler skips inputs and textareas. The list in `components/shortcuts.ts` is what the help sheet shows: update it with any new key.
+- WebKit turns a held mouse button into a native drag after a few pointer moves and then stops delivering pointer events; any drawing surface must call `preventDefault()` on pointerdown (see `Trace.tsx`). Chromium never showed this, so test gestures in WebKit too.
 - Tracing and the 3D scene work on points from `src/engine/stroke-path.ts`, never `getPointAtLength`, so tests run in Node and e2e can sample strokes from the pack file.
 - iOS Safari: no `beforeinstallprompt`, no Vibration API, speech voices may arrive late (`voiceschanged`).
 - Don't delete old hashed assets before clients update (Safari unregisters a worker whose script 404s).

@@ -9,7 +9,7 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - [x] M2 Full content pipeline + design overhaul (2026-10-06)
 - [x] M3 Learning engine (2026-10-06)
 - [x] M4 Kanji study depth (2026-10-06)
-- [ ] M5 Desktop
+- [x] M5 Desktop (2026-10-06)
 - [ ] M6 PWA hardening and sync
 - [ ] M7 Verify, review, hand off
 
@@ -73,6 +73,14 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - Fix: `vite build --ssr src/prerender.tsx` renders the welcome screen's static part (`WelcomeIntro`, shell markup, same CSS-module class names) and the client build puts it inside `#root`; React replaces it on first render with identical markup (CLS 0.01). A 300-byte inline boot script marks returning learners (`html[data-returning]`, which hides the prerender) and applies the saved theme; a second inline loader adds the module entry and its preloads one frame after the first paint, so nothing competes with it. Both inline scripts are allowed by hash in the CSP (`scripts/csp.test.ts` keeps the hashes in sync). The prerendered Start button carries `aria-disabled` until the live tree takes over.
 - Observed first contentful paint on the preview: 119 ms. Lighthouse (simulated slow 4G, median of 5): performance 0.99, LCP 1854 ms, TBT 0. The remaining simulated time is the Latin font files (96 kB, `font-display: optional`), which Lighthouse counts because they finish before the paint on a local server.
 - Also: the 3D chunk is no longer precached by the service worker (runtime cache instead), keeping the install at 754 KiB.
+
+### 2026-10-06 — M5 Desktop
+
+- Command palette (`Palette.tsx`, lazy 2.9 kB chunk, prefetched during idle time on pointer devices): ⌘K / Ctrl+K or the "Search ⌘K" button beside the tab bar on wide screens. Jumps to any kanji or word on the five lists (packs load on the first search and stay cached), runs commands (start a session, Today, Library, Kana table, Progress, Settings, Sources, switch theme), and `?` opens the shortcut sheet. Combobox + listbox semantics, arrow keys, Enter, Escape, focus returned on close. Commands named like the query outrank items; keyword-only matches trail them.
+- Library split view at ≥ 1100 px: the list keeps its column, the selected kanji studies alongside in a sticky pane (`KanjiStudy`, the kanji screen extracted into a component with an `embedded` mode). `/` focuses search, `J`/`K` move the cursor (the pane follows), `Enter` opens the kanji page, clicks select without navigating.
+- Kanji page: `S` / `T` / `A` switch Strokes, Trace, Assemble (keys printed on the segmented control for pointer devices), `R` replays. On its own page at ≥ 1100 px it is two columns: study on the left, words and sentences on the right.
+- Scene: a RoomEnvironment PMREM gives the clearcoat lacquer real reflections; hovering a piece warms it with a gold sheen and a pointer cursor before a click commits.
+- Tests: 27 e2e (desktop suite covers palette search, commands and theme switch, shortcut sheet, split view keys, kanji mode keys, axe with the palette open and on the split view). Screenshots: reports/screenshots/m4/desktop-\*.png.
 
 ## Spot-checks
 

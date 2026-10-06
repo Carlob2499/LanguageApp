@@ -88,12 +88,54 @@ html[data-theme='light'] .tab[aria-current='page'] {
   position: relative;
 }
 
+/* Palette button: desktop only, where a keyboard is likely. */
+.search {
+  display: none;
+  pointer-events: auto;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 2.75rem;
+  padding: 0 var(--sp-3) 0 var(--sp-4);
+  margin-left: var(--sp-3);
+  border-radius: 999px;
+  border: 1px solid rgb(243 237 227 / 0.1);
+  background: var(--glass);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  color: var(--fg-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.search:hover {
+  color: var(--fg);
+}
+
+.search:focus-visible {
+  outline: 2px solid var(--k-gold);
+  outline-offset: 2px;
+}
+
+.kbd {
+  font-family: var(--font-latin);
+  font-size: var(--fs-caption);
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--hairline);
+  color: var(--fg-faint);
+}
+
 @media (min-width: 900px) {
   .bar {
     bottom: auto;
     top: var(--sp-4);
     justify-content: flex-start;
     padding-inline: var(--sp-6);
+  }
+
+  .search {
+    display: inline-flex;
   }
 
   .pill {
