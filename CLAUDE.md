@@ -27,7 +27,8 @@ Installable PWA for learning Japanese kanji and vocabulary from kana to JLPT N1.
 
 ## Gotchas
 
-- Playwright: this cloud VM has Chromium preinstalled under `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`; never run `playwright install` here for Chromium. WebKit may need installing.
+- Playwright: this cloud VM has Chromium preinstalled under `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers` (build 1194; the config falls back to it when Playwright's own build is missing). WebKit works after `npx playwright install webkit && npx playwright install-deps webkit`; then run `PW_WEBKIT=1 npm run test:e2e`.
+- Never `pkill -f "vite preview"` from a shell whose own command line contains that string; use `ps -eo pid,args | grep '[v]ite preview'`.
 - Vercel: `vercel.json` carries the CSP, cache headers and the SPA rewrite. `sw.js` and `index.html` are `max-age=0`.
 - ts-fsrs cards serialise `Date`s as ISO strings; rehydrate on load.
 - iOS Safari: no `beforeinstallprompt`, no Vibration API, speech voices may arrive late (`voiceschanged`).
