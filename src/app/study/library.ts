@@ -37,6 +37,21 @@ export function kanaLessonOrder(kana: KanaItem[]): KanaItem[] {
 }
 
 /**
+ * Later-stage cards practise items the learner already knows, so they come early: one after
+ * every two fresh cards, instead of waiting behind every untouched item of the level.
+ */
+export function weaveDerived<T>(fresh: T[], derived: T[], every = 2): T[] {
+  const out: T[] = []
+  let d = 0
+  fresh.forEach((card, i) => {
+    out.push(card)
+    if ((i + 1) % every === 0 && d < derived.length) out.push(derived[d++]!)
+  })
+  while (d < derived.length) out.push(derived[d++]!)
+  return out
+}
+
+/**
  * Introduction order for a level: the most frequent kanji and the most common words,
  * alternating so a session mixes both. Words that use a level kanji follow that kanji.
  * Kana come first for learners who don't read them yet. Later-stage cards (contrast, cloze)
@@ -90,6 +105,7 @@ export async function loadLibrary(
   }
 
   // Later-stage cards for items already settling into memory.
+  const derived: StudyCard[] = []
   const existingKeys = new Set(existing.map((c) => c.key))
   for (const card of existing) {
     if (card.state !== 'review' || card.stability < DERIVED_STABILITY_DAYS) continue
@@ -98,18 +114,30 @@ export async function loadLibrary(
       confusables.has(card.itemId) &&
       !existingKeys.has(`${card.itemId}|${JA_CARD_TYPES.kanjiContrast}`)
     ) {
-      candidates.push(scheduler.newCard(card.itemId, JA_CARD_TYPES.kanjiContrast, card.group, now))
+      derived.push(scheduler.newCard(card.itemId, JA_CARD_TYPES.kanjiContrast, card.group, now))
       existingKeys.add(`${card.itemId}|${JA_CARD_TYPES.kanjiContrast}`)
     }
+    const derive = (type: (typeof JA_CARD_TYPES)[keyof typeof JA_CARD_TYPES]) => {
+      const key = `${card.itemId}|${type}`
+      if (existingKeys.has(key)) return
+      derived.push(scheduler.newCard(card.itemId, type, card.group, now))
+      existingKeys.add(key)
+    }
+    if (card.cardType === JA_CARD_TYPES.kanjiMeaning && kanji.has(card.itemId))
+      derive(JA_CARD_TYPES.kanjiWriting)
+    if (card.cardType === JA_CARD_TYPES.vocabMeaning && vocab.has(card.itemId))
+      derive(JA_CARD_TYPES.vocabListening)
     if (
       card.cardType === JA_CARD_TYPES.vocabMeaning &&
       sentences.has(card.itemId) &&
       !existingKeys.has(`${card.itemId}|${JA_CARD_TYPES.vocabCloze}`)
     ) {
-      candidates.push(scheduler.newCard(card.itemId, JA_CARD_TYPES.vocabCloze, card.group, now))
+      derived.push(scheduler.newCard(card.itemId, JA_CARD_TYPES.vocabCloze, card.group, now))
       existingKeys.add(`${card.itemId}|${JA_CARD_TYPES.vocabCloze}`)
     }
   }
 
-  return { level, kanji, vocab, kana, sentences, confusables, candidates }
+  const ordered = weaveDerived(candidates, derived)
+
+  return { level, kanji, vocab, kana, sentences, confusables, candidates: ordered }
 }

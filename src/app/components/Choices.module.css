@@ -70,3 +70,9 @@
     display: none;
   }
 }
+
+.label[data-long='true'] {
+  font-size: var(--fs-body);
+  font-weight: 500;
+  line-height: 1.3;
+}

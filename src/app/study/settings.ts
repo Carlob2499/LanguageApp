@@ -100,9 +100,26 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   },
 }))
 
+let autoTheme = false
+let listening = false
+
+function systemTheme(): 'light' | 'dark' {
+  return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: light)').matches
+    ? 'light'
+    : 'dark'
+}
+
 export function applyTheme(settings: Settings): void {
+  if (!listening && typeof matchMedia === 'function') {
+    listening = true
+    matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+      if (autoTheme) document.documentElement.setAttribute('data-theme', systemTheme())
+    })
+  }
   const root = document.documentElement
-  if (settings.theme === 'auto') root.removeAttribute('data-theme')
-  else root.setAttribute('data-theme', settings.theme)
+  // "Auto" resolves to an explicit attribute so every component sees one theme, and follows the
+  // system while it changes.
+  root.setAttribute('data-theme', settings.theme === 'auto' ? systemTheme() : settings.theme)
+  autoTheme = settings.theme === 'auto'
   root.style.setProperty('--ja-scale', String(settings.jaTextScale))
 }

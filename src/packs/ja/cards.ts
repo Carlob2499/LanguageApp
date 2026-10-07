@@ -11,6 +11,10 @@ export const JA_CARD_TYPES = {
   kanjiContrast: 'kanji-contrast',
   /** A sentence with the word blanked out, pick the word. Introduced once the base card is stable. */
   vocabCloze: 'vocab-cloze',
+  /** Hear the word (on-device voice), pick its meaning. Introduced once the base card is stable. */
+  vocabListening: 'vocab-listening',
+  /** Meaning and readings shown, write the kanji from memory by tracing. Introduced once stable. */
+  kanjiWriting: 'kanji-writing',
 } as const
 
 /** Later-stage cards appear once the item's base card has this much stability (days). */

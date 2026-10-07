@@ -92,6 +92,14 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - Tests: 72 unit (crypto round trip and wrong-key rejection, merge rules, reminder timing, update policy, CSP hashes), 35 e2e (two-device sync round trip against a fake Blob store with If-Match, unconfigured deployment, the production CSP applied to the preview with zero violations across onboarding, a review and tracing, and an offline session after the worker installs). CI was green from run 8 (M5).
 - Deferred: pairing by camera scan (the QR opens the pairing link in the phone's camera app instead), reminder delivery while the app is closed (needs a push server, out of scope by decision), FSRS seeding from placement.
 
+### 2026-10-07 — Immersion pass 1
+
+- Two new later-stage card types, unlocked once an item's base card is stable (7+ days): `vocab-listening` (the device speaks the word, the learner picks its meaning; without a Japanese voice the kana reading stands in, and the written form appears after answering) and `kanji-writing` (meaning and readings shown, the learner writes the kanji on a practice-paper square with no guide; skipped strokes grade Again, extra retries grade Hard, a clean write grades Good; Space reveals the stroke-numbered answer for self-grading).
+- Fixed: later-stage cards (look-alikes, cloze, listening, writing) were queued behind every untouched item of the level and almost never appeared; they are now woven in one after every two new cards (`weaveDerived`, unit-tested).
+- Fixed: in Auto theme on a light-mode device, components styled for an explicit light attribute kept their dark gradients over light tokens (a metallic band across cards and the tracing surface). Auto now resolves to an explicit `data-theme` at boot (inline script, CSP hash updated) and follows the system live.
+- Long multiple-choice labels step down to body size so meanings do not wrap to three lines.
+- Tests: 73 unit, 37 e2e (`immersion.spec.ts` seeds two settled cards and grades both new card types).
+
 ## Spot-checks
 
 (none yet)

@@ -47,8 +47,13 @@
       try {
         var s = JSON.parse(localStorage.getItem('kintsugi.settings') || '{}')
         if (s.onboarded) document.documentElement.setAttribute('data-returning', '')
-        if (s.theme === 'dark' || s.theme === 'light')
-          document.documentElement.setAttribute('data-theme', s.theme)
+        var t =
+          s.theme === 'dark' || s.theme === 'light'
+            ? s.theme
+            : matchMedia('(prefers-color-scheme: light)').matches
+              ? 'light'
+              : 'dark'
+        document.documentElement.setAttribute('data-theme', t)
       } catch (e) {}
     </script>
   </head>

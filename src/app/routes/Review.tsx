@@ -5,6 +5,8 @@ import { Choices, type Choice } from '@/app/components/Choices'
 import { Crack } from '@/app/components/Crack'
 import { Furigana } from '@/app/components/Furigana'
 import { GoldFlecks } from '@/app/components/GoldFlecks'
+import { Listen } from '@/app/components/Listen'
+import { Trace } from '@/app/components/Trace'
 import { useSync } from '@/app/sync/store'
 import { Icon } from '@/app/components/Icon'
 import { Sheet } from '@/app/components/Sheet'
@@ -15,6 +17,7 @@ import { Vessel } from '@/app/components/Vessel'
 import { Link, useNavigate } from '@/app/router/index'
 import { useStudySession } from '@/app/study/useStudySession'
 import { GRADE_LABELS } from '@/engine/session'
+import type { TracingState } from '@/engine/tracing'
 import type { Grade, StudyCard } from '@/engine/types'
 import { displayForm, JA_CARD_TYPES, primaryGloss, readingsFor } from '@/packs/ja/cards'
 import { checkReading } from '@/packs/ja/grading'
@@ -213,10 +216,20 @@ export function ReviewRoute() {
         </div>
       )}
 
-      {item &&
-      (card.cardType === JA_CARD_TYPES.kanaRecognition ||
-        card.cardType === JA_CARD_TYPES.kanjiContrast ||
-        card.cardType === JA_CARD_TYPES.vocabCloze) ? (
+      {item && card.cardType === JA_CARD_TYPES.kanjiWriting ? (
+        <WritingFace
+          key={card.key}
+          card={card}
+          kanji={item as KanjiItem}
+          session={session}
+          cracking={cracking}
+          onGrade={gradeWithCrack}
+        />
+      ) : item &&
+        (card.cardType === JA_CARD_TYPES.kanaRecognition ||
+          card.cardType === JA_CARD_TYPES.kanjiContrast ||
+          card.cardType === JA_CARD_TYPES.vocabCloze ||
+          card.cardType === JA_CARD_TYPES.vocabListening) ? (
         <ChoiceFace
           key={card.key}
           card={card}
@@ -600,7 +613,16 @@ function ChoiceFace({
       )}
       <div className={styles.prompt}>
         <p className={styles.kind}>{built.kind}</p>
-        {built.promptJa ? (
+        {built.listen ? (
+          <>
+            <Listen text={built.listen} />
+            {picked && built.promptJa && (
+              <p className={`${styles.sub} ja-display`} lang="ja">
+                {built.promptJa}
+              </p>
+            )}
+          </>
+        ) : built.promptJa ? (
           <p
             className={`${styles.hero} ja-display`}
             lang="ja"
@@ -644,8 +666,123 @@ function ChoiceFace({
   )
 }
 
+/** Write from memory: meaning and readings shown, the learner traces the kanji with no guide. */
+function WritingFace({
+  card,
+  kanji,
+  session,
+  cracking,
+  onGrade,
+}: {
+  card: StudyCard
+  kanji: KanjiItem
+  session: Session
+  cracking: boolean
+  onGrade: (g: Grade) => void
+}) {
+  const level = card.group as Level
+  const [strokes, setStrokes] = useState<StrokeItem>()
+  const [result, setResult] = useState<string>()
+  const repaired =
+    card.lapses > 0 ? Math.min(1, Math.max(0, (card.reps - card.lapses) / (card.lapses + 2))) : 0
+
+  useEffect(() => {
+    let cancelled = false
+    void strokesFor(kanji.char, level).then((s) => !cancelled && setStrokes(s))
+    return () => {
+      cancelled = true
+    }
+  }, [kanji, level])
+
+  function complete(state: TracingState) {
+    const count = strokes?.strokes.length ?? 1
+    const grade: Grade =
+      state.skipped.length > 0 ? 1 : state.attempts > count + Math.ceil(count / 3) ? 2 : 3
+    setResult(
+      grade === 1
+        ? `Some strokes needed help. ${kanji.char} comes back soon.`
+        : grade === 2
+          ? `Written, with ${state.attempts - count} retries.`
+          : 'Written from memory.',
+    )
+    session.answer(grade === 1 ? 'wrong' : 'right')
+    window.setTimeout(() => onGrade(grade), grade === 1 ? 1600 : 1100)
+  }
+
+  const showAnswer = session.revealed && !result
+
+  return (
+    <>
+      <Tile
+        cardKey={card.key}
+        swipeEnabled={false}
+        seamProgress={repaired}
+        onSwipe={() => undefined}
+      >
+        {(card.lapses > 0 || cracking) && (
+          <Crack seed={card.key} gold={cracking ? 0 : repaired} drawing={cracking} />
+        )}
+        <div className={styles.prompt}>
+          <p className={styles.kind}>Writing · from memory</p>
+          <p className={styles.meaning}>{kanji.meanings.slice(0, 3).join(' · ')}</p>
+          <p className={styles.sub} lang="ja">
+            {[...kanji.on.slice(0, 2), ...kanji.kun.slice(0, 2)].join('　')}
+          </p>
+        </div>
+        <div className={styles.answer}>
+          {!strokes ? null : showAnswer ? (
+            <div className={styles.heroGlyph}>
+              <StrokeGlyph
+                item={strokes}
+                speed={260}
+                numbers
+                className={styles.glyphGold}
+                label={`${kanji.char}, drawn stroke by stroke`}
+              />
+            </div>
+          ) : (
+            <Trace item={strokes} memoryOnly onComplete={complete} />
+          )}
+        </div>
+        <div className={styles.hint}>
+          {result ? (
+            <span className={session.verdict === 'right' ? styles.right : styles.wrong}>
+              {result}
+            </span>
+          ) : showAnswer ? (
+            <span>Here it is, stroke by stroke. How well did you know it?</span>
+          ) : (
+            <span>{kanji.strokes} strokes. Write it in order; Space shows the answer.</span>
+          )}
+        </div>
+      </Tile>
+      {showAnswer && (
+        <div className={styles.controls}>
+          <div className={styles.grades} role="group" aria-label="Grade this card">
+            {([1, 2, 3, 4] as Grade[]).map((g) => (
+              <Button
+                key={g}
+                variant={g === 1 ? 'danger' : g === 3 ? 'success' : 'secondary'}
+                size="large"
+                disabled={cracking}
+                onClick={() => onGrade(g)}
+              >
+                <Icon name={GRADE_ICON[g]} size={18} />
+                {GRADE_LABELS[g]}
+                <kbd className={styles.kbd}>{g}</kbd>
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 interface Built {
   kind: string
+  /** Listening cards: the text the device speaks; the written form appears after answering. */
+  listen?: string | undefined
   promptJa?: string | undefined
   promptEn?: string | undefined
   small?: boolean | undefined
@@ -712,6 +849,31 @@ function buildChoices(
   }
   const word = item as VocabItem
   const form = displayForm(word)
+  if (card.cardType === JA_CARD_TYPES.vocabListening) {
+    const sameKind = [...library.vocab.values()].filter(
+      (v) =>
+        v.id !== word.id &&
+        primaryGloss(v) !== primaryGloss(word) &&
+        v.senses[0]!.pos.some((p) => word.senses[0]!.pos.includes(p)),
+    )
+    const others = seededPick(
+      sameKind.length >= 3 ? sameKind : [...library.vocab.values()].filter((v) => v.id !== word.id),
+      3,
+      seed,
+    )
+    const reading = readingsFor(word, form)[0] ?? form
+    return {
+      kind: 'Listening · meaning',
+      listen: reading,
+      promptJa: form === reading ? form : `${form}（${reading}）`,
+      choices: seededPick([word, ...others], 4, seed + 'o').map<Choice>((v) => ({
+        id: v.id,
+        label: v.senses[0]!.gloss.slice(0, 2).join('; '),
+      })),
+      correctId: word.id,
+      explain: `${form} means ${primaryGloss(word)}.`,
+    }
+  }
   const sentence =
     (library.sentences.get(word.id) ?? []).find((s) => s.jp.includes(s.form)) ??
     library.sentences.get(word.id)?.[0]

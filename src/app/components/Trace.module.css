@@ -28,8 +28,16 @@ html[data-theme='light'] .surface {
 }
 
 .surface path,
-.surface circle {
+.surface circle,
+.surface line {
   pointer-events: none;
+}
+
+.paper line {
+  stroke: var(--k-shu);
+  stroke-width: 0.5;
+  stroke-dasharray: 2 2.5;
+  opacity: 0.35;
 }
 
 .guide,

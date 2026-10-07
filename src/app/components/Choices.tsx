@@ -58,7 +58,9 @@ export function Choices({
             onClick={() => onPick(c.id)}
             lang={c.lang}
           >
-            <span className={styles.label}>{c.label}</span>
+            <span className={styles.label} data-long={c.label.length > 12 ? 'true' : undefined}>
+              {c.label}
+            </span>
             {c.sub && <span className={styles.sub}>{c.sub}</span>}
             <kbd className={styles.kbd} aria-hidden="true">
               {i + 1}

@@ -26,6 +26,8 @@ export interface TraceProps {
   item: StrokeItem
   /** Called once when every stroke has been traced. */
   onComplete?: ((state: TracingState) => void) | undefined
+  /** Review mode: guide hidden from the start, no toggle, no "trace again". */
+  memoryOnly?: boolean | undefined
 }
 
 /**
@@ -33,11 +35,11 @@ export interface TraceProps {
  * KanjiVG path with the forgiving matcher; a hit snaps to gold, a miss fades in red and, after
  * two misses, the stroke draws itself as a hint. "From memory" hides the guide.
  */
-export function Trace({ item, onComplete }: TraceProps) {
+export function Trace({ item, onComplete, memoryOnly = false }: TraceProps) {
   const targets = useMemo(() => item.strokes.map((s) => flattenPath(s.d, 12)), [item])
   const count = targets.length
   const [state, setState] = useState<TracingState>(INITIAL_TRACING)
-  const [fromMemory, setFromMemory] = useState(false)
+  const [fromMemory, setFromMemory] = useState(memoryOnly)
   const [hint, setHint] = useState<{ stroke: number; key: number }>()
   const [live, setLive] = useState<Point[]>([])
   const [miss, setMiss] = useState<{ points: Point[]; key: number }>()
@@ -167,6 +169,11 @@ export function Trace({ item, onComplete }: TraceProps) {
         onPointerCancel={onUp}
         onDragStart={(e) => e.preventDefault()}
       >
+        {/* Practice-paper guides: a dashed cross through the square, as on genkō writing sheets. */}
+        <g className={styles.paper} aria-hidden="true">
+          <line x1={BOX / 2} y1={4} x2={BOX / 2} y2={BOX - 4} />
+          <line x1={4} y1={BOX / 2} x2={BOX - 4} y2={BOX / 2} />
+        </g>
         {/* Guide: every stroke faint, the current one brighter, unless tracing from memory. */}
         {!fromMemory &&
           item.strokes.map((s, i) =>
@@ -213,7 +220,7 @@ export function Trace({ item, onComplete }: TraceProps) {
       </p>
       <div className={styles.tools}>
         {done ? (
-          <Button onClick={reset}>Trace again</Button>
+          !memoryOnly && <Button onClick={reset}>Trace again</Button>
         ) : (
           <>
             <Button variant="quiet" onClick={showHint}>
@@ -227,14 +234,16 @@ export function Trace({ item, onComplete }: TraceProps) {
             </Button>
           </>
         )}
-        <Button
-          variant="quiet"
-          aria-pressed={fromMemory}
-          onClick={() => setFromMemory((v) => !v)}
-          className={styles.memoryToggle}
-        >
-          From memory
-        </Button>
+        {!memoryOnly && (
+          <Button
+            variant="quiet"
+            aria-pressed={fromMemory}
+            onClick={() => setFromMemory((v) => !v)}
+            className={styles.memoryToggle}
+          >
+            From memory
+          </Button>
+        )}
       </div>
       {done && <GoldFlecks count={40} />}
     </div>
