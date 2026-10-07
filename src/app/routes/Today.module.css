@@ -202,3 +202,32 @@ html[data-theme='light'] .daily {
   z-index: -1;
   pointer-events: none;
 }
+
+.lead,
+.side {
+  display: grid;
+  gap: var(--sp-4);
+  align-content: start;
+}
+
+/* Desktop: the headline and actions on the left, the daily kanji and kana on the right. */
+@media (min-width: 1000px) {
+  .today {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    column-gap: var(--sp-7);
+    align-items: start;
+    padding-top: var(--sp-5);
+  }
+
+  .lead {
+    gap: var(--sp-5);
+  }
+
+  .lead h1 {
+    font-size: 3.25rem;
+  }
+
+  .side {
+    padding-top: var(--sp-6);
+  }
+}

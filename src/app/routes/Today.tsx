@@ -79,131 +79,135 @@ export function TodayRoute() {
 
   return (
     <section className={styles.today} aria-labelledby="today-title">
-      <header className={styles.top}>
-        <div>
-          <p className={styles.eyebrow}>
-            Today · {settings.kanaReady ? settings.level : 'Kana first'}
-          </p>
-          <h1 id="today-title">
-            {counts === undefined
-              ? 'Loading your cards…'
-              : due > 0
-                ? `${due} to repair.`
-                : newLeft > 0
-                  ? 'Nothing due. Learn something new?'
-                  : 'All done for today.'}
-          </h1>
+      <div className={styles.lead}>
+        <header className={styles.top}>
+          <div>
+            <p className={styles.eyebrow}>
+              Today · {settings.kanaReady ? settings.level : 'Kana first'}
+            </p>
+            <h1 id="today-title">
+              {counts === undefined
+                ? 'Loading your cards…'
+                : due > 0
+                  ? `${due} ${due === 1 ? 'card' : 'cards'} due.`
+                  : newLeft > 0
+                    ? 'Nothing due. Learn something new?'
+                    : 'All done for today.'}
+            </h1>
+          </div>
+          <Vessel
+            fill={fill}
+            seams={Math.min(6, Math.floor(done / 4))}
+            size={88}
+            label={`Today's bowl, ${Math.round(fill * 100)}% full`}
+            className={styles.vessel}
+          />
+        </header>
+        <p className={styles.lede}>
+          {due > 0 && newLeft > 0
+            ? `${due} reviews are waiting, with room for ${newLeft} new ${newLeft === 1 ? 'card' : 'cards'}.`
+            : due > 0
+              ? `${due} reviews are waiting. New cards are done for today.`
+              : newLeft > 0
+                ? `${newLeft} new ${newLeft === 1 ? 'card' : 'cards'} ready to meet.`
+                : 'Come back tomorrow, or browse the library.'}
+        </p>
+        <div className={styles.actions}>
+          {!settings.kanaReady && (
+            <Link to="/kana" className={styles.secondary}>
+              Kana table
+            </Link>
+          )}
+          {hasWork ? (
+            <Link to="/review" className={styles.primary}>
+              {due > 0 ? 'Start reviewing' : 'Learn new cards'}
+              <Icon name="chevron" size={20} />
+            </Link>
+          ) : (
+            <Link to="/library" className={styles.secondary}>
+              Browse the library
+            </Link>
+          )}
         </div>
-        <Vessel
-          fill={fill}
-          seams={Math.min(6, Math.floor(done / 4))}
-          size={88}
-          label={`Today's bowl, ${Math.round(fill * 100)}% full`}
-          className={styles.vessel}
-        />
-      </header>
-      <p className={styles.lede}>
-        {due > 0 && newLeft > 0
-          ? `${due} reviews are waiting, with room for ${newLeft} new ${newLeft === 1 ? 'card' : 'cards'}.`
-          : due > 0
-            ? `${due} reviews are waiting. New cards are done for today.`
-            : newLeft > 0
-              ? `${newLeft} new ${newLeft === 1 ? 'card' : 'cards'} ready to meet.`
-              : 'Come back tomorrow, or browse the library.'}
-      </p>
-      <div className={styles.actions}>
-        {!settings.kanaReady && (
-          <Link to="/kana" className={styles.secondary}>
-            Kana table
+
+        <dl className={styles.stats}>
+          <div>
+            <dt>Streak</dt>
+            <dd>
+              <span className={styles.ember} aria-hidden="true" />
+              <CountUp value={streak} />
+              <span className={styles.of}> {streak === 1 ? 'day' : 'days'}</span>
+            </dd>
+          </div>
+          <div>
+            <dt>Reviews today</dt>
+            <dd>
+              <CountUp value={done} />
+            </dd>
+          </div>
+          <div>
+            <dt>New today</dt>
+            <dd>
+              <CountUp value={counts?.today.newIntroduced ?? 0} />
+              <span className={styles.of}> / {settings.newPerDay}</span>
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      <div className={styles.side}>
+        {daily && daily.kind === 'kanji' && (
+          <Link
+            to={`/kanji/${encodeURIComponent(daily.kanji.char)}`}
+            className={styles.daily}
+            aria-label={`Kanji of the day: ${daily.kanji.char}, ${daily.kanji.meanings[0]}`}
+          >
+            <div className={styles.dailyGlyph}>
+              {daily.strokes ? (
+                <StrokeGlyph item={daily.strokes} speed={260} />
+              ) : (
+                <span className="ja-display" lang="ja">
+                  {daily.kanji.char}
+                </span>
+              )}
+            </div>
+            <div className={styles.dailyText}>
+              <p className={styles.eyebrow}>Kanji of the day</p>
+              <p className={styles.dailyMeaning}>{daily.kanji.meanings.slice(0, 3).join(' · ')}</p>
+              <p className={styles.dailyReadings} lang="ja">
+                {[...daily.kanji.on.slice(0, 2), ...daily.kanji.kun.slice(0, 2)].join('　')}
+              </p>
+              <p className={styles.dailyStrokes}>{daily.kanji.strokes} strokes · tap to study</p>
+            </div>
           </Link>
         )}
-        {hasWork ? (
-          <Link to="/review" className={styles.primary}>
-            {due > 0 ? 'Start reviewing' : 'Learn new cards'}
-            <Icon name="chevron" size={20} />
-          </Link>
-        ) : (
-          <Link to="/library" className={styles.secondary}>
-            Browse the library
+        {daily && daily.kind === 'kana' && (
+          <Link
+            to="/kana"
+            className={styles.daily}
+            aria-label={`Kana of the day: ${daily.kana.char}, ${daily.kana.romaji}`}
+          >
+            <div className={styles.dailyGlyph}>
+              {daily.strokes ? (
+                <StrokeGlyph item={daily.strokes} speed={320} />
+              ) : (
+                <span className="ja-display" lang="ja">
+                  {daily.kana.char}
+                </span>
+              )}
+            </div>
+            <div className={styles.dailyText}>
+              <p className={styles.eyebrow}>Kana of the day</p>
+              <p className={styles.dailyMeaning}>{daily.kana.romaji}</p>
+              <p className={styles.dailyReadings} lang="ja">
+                {daily.kana.script} ·{' '}
+                {daily.kana.pair ? `counterpart ${daily.kana.pair}` : 'no counterpart'}
+              </p>
+              <p className={styles.dailyStrokes}>Tap for the whole table</p>
+            </div>
           </Link>
         )}
       </div>
-
-      <dl className={styles.stats}>
-        <div>
-          <dt>Streak</dt>
-          <dd>
-            <span className={styles.ember} aria-hidden="true" />
-            <CountUp value={streak} />
-            <span className={styles.of}> {streak === 1 ? 'day' : 'days'}</span>
-          </dd>
-        </div>
-        <div>
-          <dt>Reviews today</dt>
-          <dd>
-            <CountUp value={done} />
-          </dd>
-        </div>
-        <div>
-          <dt>New today</dt>
-          <dd>
-            <CountUp value={counts?.today.newIntroduced ?? 0} />
-            <span className={styles.of}> / {settings.newPerDay}</span>
-          </dd>
-        </div>
-      </dl>
-
-      {daily && daily.kind === 'kanji' && (
-        <Link
-          to={`/kanji/${encodeURIComponent(daily.kanji.char)}`}
-          className={styles.daily}
-          aria-label={`Kanji of the day: ${daily.kanji.char}, ${daily.kanji.meanings[0]}`}
-        >
-          <div className={styles.dailyGlyph}>
-            {daily.strokes ? (
-              <StrokeGlyph item={daily.strokes} speed={260} />
-            ) : (
-              <span className="ja-display" lang="ja">
-                {daily.kanji.char}
-              </span>
-            )}
-          </div>
-          <div className={styles.dailyText}>
-            <p className={styles.eyebrow}>Kanji of the day</p>
-            <p className={styles.dailyMeaning}>{daily.kanji.meanings.slice(0, 3).join(' · ')}</p>
-            <p className={styles.dailyReadings} lang="ja">
-              {[...daily.kanji.on.slice(0, 2), ...daily.kanji.kun.slice(0, 2)].join('　')}
-            </p>
-            <p className={styles.dailyStrokes}>{daily.kanji.strokes} strokes · tap to study</p>
-          </div>
-        </Link>
-      )}
-      {daily && daily.kind === 'kana' && (
-        <Link
-          to="/kana"
-          className={styles.daily}
-          aria-label={`Kana of the day: ${daily.kana.char}, ${daily.kana.romaji}`}
-        >
-          <div className={styles.dailyGlyph}>
-            {daily.strokes ? (
-              <StrokeGlyph item={daily.strokes} speed={320} />
-            ) : (
-              <span className="ja-display" lang="ja">
-                {daily.kana.char}
-              </span>
-            )}
-          </div>
-          <div className={styles.dailyText}>
-            <p className={styles.eyebrow}>Kana of the day</p>
-            <p className={styles.dailyMeaning}>{daily.kana.romaji}</p>
-            <p className={styles.dailyReadings} lang="ja">
-              {daily.kana.script} ·{' '}
-              {daily.kana.pair ? `counterpart ${daily.kana.pair}` : 'no counterpart'}
-            </p>
-            <p className={styles.dailyStrokes}>Tap for the whole table</p>
-          </div>
-        </Link>
-      )}
     </section>
   )
 }

@@ -65,3 +65,10 @@ html[data-theme='light'] .tile {
 .glowAgain {
   background: radial-gradient(circle at 20% 50%, rgb(227 66 52 / 0.45), transparent 60%);
 }
+
+@media (min-width: 900px) {
+  .tile {
+    width: min(100%, 44rem);
+    min-height: 26rem;
+  }
+}
