@@ -28,6 +28,8 @@ describe('content security policy', () => {
     expect(scriptSrc.split(' ')).toEqual(["'self'", ...hashes])
     expect(csp).not.toContain("'unsafe-inline' 'unsafe-eval'")
     expect(csp).toContain("object-src 'none'")
+    // e2e/pwa.spec.ts drops this one directive for the plain-http preview; production keeps it.
+    expect(csp).toContain('upgrade-insecure-requests')
     expect(csp).toContain("frame-ancestors 'none'")
   })
 

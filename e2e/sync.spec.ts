@@ -79,13 +79,17 @@ async function cardCount(page: Page): Promise<number> {
 }
 
 test.describe('sync', () => {
+  // Playwright's request mocks do not see traffic that passes through a service worker in WebKit,
+  // so these tests run without one; the worker's /api passthrough is covered in pwa.spec.ts.
+  test.use({ serviceWorkers: 'block' })
+
   test("two devices share one encrypted snapshot and merge each other's reviews", async ({
     browser,
     baseURL,
   }) => {
     test.setTimeout(90_000)
     const store = new FakeBlobStore()
-    const a = await browser.newContext({ baseURL: baseURL! })
+    const a = await browser.newContext({ baseURL: baseURL!, serviceWorkers: 'block' })
     await store.install(a)
     const pageA = await a.newPage()
     await skipOnboarding(pageA)
@@ -106,7 +110,7 @@ test.describe('sync', () => {
     expect(text).not.toContain('"itemId"')
 
     // Device B joins with the key: pulls A's progress, then adds its own.
-    const b = await browser.newContext({ baseURL: baseURL! })
+    const b = await browser.newContext({ baseURL: baseURL!, serviceWorkers: 'block' })
     await store.install(b)
     const pageB = await b.newPage()
     await skipOnboarding(pageB)

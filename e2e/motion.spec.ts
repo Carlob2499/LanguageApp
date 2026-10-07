@@ -57,12 +57,15 @@ test.describe('motion', () => {
   })
 
   test('a run of right answers plays seals and a combo with a clean console', async ({ page }) => {
-    const errors: string[] = []
-    page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
-    page.on('pageerror', (e) => errors.push(e.message))
     await visit(page)
     await page.keyboard.press('Space')
     await page.goto('/review')
+    await expect(page.getByRole('button', { name: /Reveal|Check/ })).toBeVisible()
+    // Listen only now: a full navigation can abort a lazy chunk import mid-flight in WebKit,
+    // which is not an app error.
+    const errors: string[] = []
+    page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
+    page.on('pageerror', (e) => errors.push(e.message))
     for (let i = 0; i < 4; i++) {
       await answerCard(page, 'Good')
     }
@@ -80,11 +83,11 @@ test.describe('motion', () => {
       await answerCard(page, 'Good')
     }
     await expect(input).toBeVisible()
-    await expect(input).toHaveAttribute('placeholder', /romaji/)
+    await expect(page.locator('input[placeholder="Type in romaji, e.g. gakkou"]')).toBeVisible()
     await input.fill('gakkou')
     await expect(page.getByText('がっこう', { exact: true })).toBeVisible()
     await page.getByRole('button', { name: 'Kana', exact: true }).click()
-    await expect(input).toHaveAttribute('placeholder', 'Type in kana')
+    await expect(page.locator('input[placeholder="Type in kana"]')).toBeVisible()
     const stored = await page.evaluate(() => localStorage.getItem('kintsugi.settings'))
     expect(JSON.parse(stored ?? '{}')).toMatchObject({ typing: 'kana' })
   })

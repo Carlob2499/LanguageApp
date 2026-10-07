@@ -9,8 +9,13 @@ function productionCsp(): string {
   const vercel = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')) as {
     headers: Array<{ headers: Array<{ key: string; value: string }> }>
   }
-  return vercel.headers.flatMap((h) => h.headers).find((h) => h.key === 'Content-Security-Policy')!
-    .value
+  const csp = vercel.headers
+    .flatMap((h) => h.headers)
+    .find((h) => h.key === 'Content-Security-Policy')!.value
+  // The preview server is plain http on localhost. WebKit (unlike Chromium) would upgrade every
+  // subresource to https there and fail the TLS handshake, so the directive is left out; the
+  // header itself is asserted separately in csp.test.ts.
+  return csp.replace(/;?\s*upgrade-insecure-requests/, '')
 }
 
 test.describe('pwa', () => {
@@ -72,6 +77,8 @@ test.describe('pwa', () => {
     await context.setOffline(true)
     await page.reload()
     await answerCard(page)
+    // The grade is written to IndexedDB asynchronously; let it land before navigating away.
+    await page.waitForTimeout(600)
     await page.goto('/')
     await expect(page.getByText(/Reviews today/i)).toBeVisible()
     await expect(page.getByText('2', { exact: true }).first()).toBeVisible()
