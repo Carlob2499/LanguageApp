@@ -95,8 +95,8 @@ export function ProgressRoute() {
     <section className={styles.progress} aria-labelledby="progress-title">
       <h1 id="progress-title">Progress</h1>
       <p className={styles.lede}>
-        Each vessel is a level. It fills as items settle into long-term memory, and every repaired
-        lapse leaves a gold seam.
+        Each bowl is a level. It fills as items reach long-term memory, and each mistake you recover
+        from adds a gold seam.
       </p>
 
       <ul className={styles.shelf} role="list">
@@ -114,7 +114,7 @@ export function ProgressRoute() {
                 fill={fill}
                 seams={Math.min(6, b.lapses)}
                 size={96}
-                label={`${l}: ${b.repaired.size} of ${total} repaired`}
+                label={`${l}: ${b.repaired.size} of ${total} known`}
               />
               <span className={styles.vesselLevel}>{l}</span>
               <span className={styles.vesselCount}>
@@ -137,7 +137,7 @@ export function ProgressRoute() {
           <dd>{minutes}</dd>
         </div>
         <div>
-          <dt>Lapses repaired</dt>
+          <dt>Mistakes recovered</dt>
           <dd>{cards.filter((c) => c.lapses > 0 && c.state === 'review').length}</dd>
         </div>
       </dl>
@@ -147,7 +147,7 @@ export function ProgressRoute() {
           {level} kanji
         </h2>
         <p className={styles.legendLine}>
-          <span className={styles.key} data-state="repaired" /> {mosaicCounts.repaired} repaired
+          <span className={styles.key} data-state="repaired" /> {mosaicCounts.repaired} known
           <span className={styles.key} data-state="learning" /> {mosaicCounts.learning} learning
           <span className={styles.key} data-state="cracked" /> {mosaicCounts.cracked} cracked
           <span className={styles.key} />{' '}

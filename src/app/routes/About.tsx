@@ -13,7 +13,7 @@ const LIBRARIES = [
   ['Motion', 'MIT'],
   ['Workbox', 'MIT'],
   ['wanakana', 'MIT'],
-  ['Zen Kaku Gothic New, Shippori Mincho, Instrument Sans, Fraunces', 'SIL OFL 1.1'],
+  ['M PLUS 2, Zen Antique, Shippori Mincho, Dela Gothic One', 'SIL OFL 1.1'],
 ]
 
 export function AboutRoute() {

@@ -125,7 +125,7 @@ export function WelcomeRoute() {
           <p className={styles.eyebrow}>Step 1 of 2</p>
           <h1>Where do you begin?</h1>
           <p className={styles.lede}>
-            Pick the level that feels like today. You can change it any time.
+            Pick the level that fits you now. You can change it any time.
           </p>
           <div className={styles.options} role="radiogroup" aria-label="Starting level">
             {LEVELS.map((l) => (

@@ -43,9 +43,7 @@ export function MemoryAid({ itemId, char }: { itemId: string; char: string }) {
         }}
       />
       <p className={styles.note} aria-live="polite">
-        {saved
-          ? 'Saved on this device.'
-          : 'Your words, not an origin story. Saved when you tap away.'}
+        {saved ? 'Saved on this device.' : 'Write your own memory aid. It saves when you tap away.'}
       </p>
     </div>
   )

@@ -23,6 +23,10 @@ export interface Settings {
   reminder: ReminderSettings
   /** Speak words when revealed and kana when answered (on-device voice). */
   autoAudio: boolean
+  /** Synthesised sound for strokes, seals and chimes. On by default; this device only. */
+  sound: boolean
+  /** Gentle keeps the gold and drops flashes, wipes and sharp sounds. This device only. */
+  motion: 'full' | 'gentle'
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -37,6 +41,8 @@ export const DEFAULT_SETTINGS: Settings = {
   kanaReady: true,
   reminder: DEFAULT_REMINDER,
   autoAudio: true,
+  sound: true,
+  motion: 'full',
 }
 
 const SETTINGS_KEYS = new Set<string>([...Object.keys(DEFAULT_SETTINGS), 'placedAt'])

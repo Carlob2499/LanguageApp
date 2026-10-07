@@ -20,20 +20,21 @@ const CJK = /[㐀-䶿一-鿿豈-﫿]/u
 
 const faces = [
   // Body face: every level slice. Bold body face: base slice only (Japanese bold is used for
-  // kana UI labels; kanji are never set bold). Hero face: every level slice.
+  // kana UI labels; kanji are never set bold). Hero face: every level slice. Heading and
+  // combo faces carry kana and punctuation only, so they ship the base slice.
   {
-    family: 'Zen Kaku Gothic New',
-    id: 'zkgn',
+    family: 'M PLUS 2',
+    id: 'mplus2',
     weight: 400,
     slices: 'all',
-    file: 'node_modules/@fontsource/zen-kaku-gothic-new/files/zen-kaku-gothic-new-japanese-400-normal.woff2',
+    file: 'node_modules/@fontsource/m-plus-2/files/m-plus-2-japanese-400-normal.woff2',
   },
   {
-    family: 'Zen Kaku Gothic New',
-    id: 'zkgn',
+    family: 'M PLUS 2',
+    id: 'mplus2',
     weight: 700,
     slices: 'base',
-    file: 'node_modules/@fontsource/zen-kaku-gothic-new/files/zen-kaku-gothic-new-japanese-700-normal.woff2',
+    file: 'node_modules/@fontsource/m-plus-2/files/m-plus-2-japanese-700-normal.woff2',
   },
   {
     family: 'Shippori Mincho',
@@ -42,31 +43,57 @@ const faces = [
     slices: 'all',
     file: 'node_modules/@fontsource/shippori-mincho/files/shippori-mincho-japanese-700-normal.woff2',
   },
+  {
+    family: 'Zen Antique',
+    id: 'zenantique',
+    weight: 400,
+    slices: 'base',
+    file: 'node_modules/@fontsource/zen-antique/files/zen-antique-japanese-400-normal.woff2',
+  },
+  {
+    family: 'Dela Gothic One',
+    id: 'dela',
+    weight: 400,
+    slices: 'base',
+    file: 'node_modules/@fontsource/dela-gothic-one/files/dela-gothic-one-japanese-400-normal.woff2',
+  },
 ]
 const latin = [
   {
-    family: 'Instrument Sans',
+    family: 'M PLUS 2',
     weight: '400',
-    file: 'node_modules/@fontsource/instrument-sans/files/instrument-sans-latin-400-normal.woff2',
-    out: 'instrument-sans-400.woff2',
+    file: 'node_modules/@fontsource/m-plus-2/files/m-plus-2-latin-400-normal.woff2',
+    out: 'mplus2-400.woff2',
   },
   {
-    family: 'Instrument Sans',
+    family: 'M PLUS 2',
     weight: '500',
-    file: 'node_modules/@fontsource/instrument-sans/files/instrument-sans-latin-500-normal.woff2',
-    out: 'instrument-sans-500.woff2',
+    file: 'node_modules/@fontsource/m-plus-2/files/m-plus-2-latin-500-normal.woff2',
+    out: 'mplus2-500.woff2',
   },
   {
-    family: 'Instrument Sans',
+    family: 'M PLUS 2',
     weight: '600',
-    file: 'node_modules/@fontsource/instrument-sans/files/instrument-sans-latin-600-normal.woff2',
-    out: 'instrument-sans-600.woff2',
+    file: 'node_modules/@fontsource/m-plus-2/files/m-plus-2-latin-600-normal.woff2',
+    out: 'mplus2-600.woff2',
   },
   {
-    family: 'Fraunces Variable',
-    weight: '100 900',
-    file: 'node_modules/@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2',
-    out: 'fraunces-variable.woff2',
+    family: 'M PLUS 2',
+    weight: '700',
+    file: 'node_modules/@fontsource/m-plus-2/files/m-plus-2-latin-700-normal.woff2',
+    out: 'mplus2-700.woff2',
+  },
+  {
+    family: 'Zen Antique',
+    weight: '400',
+    file: 'node_modules/@fontsource/zen-antique/files/zen-antique-latin-400-normal.woff2',
+    out: 'zenantique-400.woff2',
+  },
+  {
+    family: 'Dela Gothic One',
+    weight: '400',
+    file: 'node_modules/@fontsource/dela-gothic-one/files/dela-gothic-one-latin-400-normal.woff2',
+    out: 'dela-400.woff2',
   },
 ]
 
@@ -185,10 +212,10 @@ writeFileSync(
   [
     'All fonts in this folder are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org).',
     'They are subsets built from the Fontsource packages; the original licence files are:',
-    'Zen Kaku Gothic New: node_modules/@fontsource/zen-kaku-gothic-new/LICENSE (Copyright 2022 The Zen Project Authors)',
+    'M PLUS 2: node_modules/@fontsource/m-plus-2/LICENSE (Copyright 2016 The M+ FONTS Project Authors)',
     'Shippori Mincho: node_modules/@fontsource/shippori-mincho/LICENSE (Copyright 2020 The Shippori Mincho Project Authors)',
-    'Instrument Sans: node_modules/@fontsource/instrument-sans/LICENSE (Copyright 2022 The Instrument Sans Project Authors)',
-    'Fraunces: node_modules/@fontsource-variable/fraunces/LICENSE (Copyright 2019 The Fraunces Project Authors)',
+    'Zen Antique: node_modules/@fontsource/zen-antique/LICENSE (Copyright 2021 The Zen Project Authors)',
+    'Dela Gothic One: node_modules/@fontsource/dela-gothic-one/LICENSE (Copyright 2020 The Dela Gothic Project Authors)',
   ].join('\n') + '\n',
 )
 console.log(`total ${(total / 1024).toFixed(0)} KB in ${OUT}`)

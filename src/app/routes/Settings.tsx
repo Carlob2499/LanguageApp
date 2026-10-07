@@ -108,7 +108,7 @@ export function SettingsRoute() {
         </Row>
         <Row
           label="Target recall"
-          hint="Higher means more reviews, fewer lapses. 90% is the balanced default."
+          hint="Higher means more reviews and fewer forgotten cards. 90% is the default."
         >
           <Segmented
             options={[0.8, 0.85, 0.9, 0.95].map((r) => ({
@@ -144,6 +144,32 @@ export function SettingsRoute() {
             ]}
             value={settings.autoAudio ? 'on' : 'off'}
             onChange={(v) => set('autoAudio', v === 'on')}
+          />
+        </Row>
+        <Row
+          label="Sound"
+          hint="Koto, taiko and bell tones made on this device as you study. Your phone's silent switch still wins."
+        >
+          <Segmented
+            options={[
+              { value: 'on' as const, label: 'On' },
+              { value: 'off' as const, label: 'Off' },
+            ]}
+            value={settings.sound ? 'on' : 'off'}
+            onChange={(v) => set('sound', v === 'on')}
+          />
+        </Row>
+        <Row
+          label="Motion"
+          hint="Gentle keeps the gold seams and drops flashes, wipes and loud sounds. Your device's reduce-motion setting turns animation off entirely."
+        >
+          <Segmented
+            options={[
+              { value: 'full' as const, label: 'Full' },
+              { value: 'gentle' as const, label: 'Gentle' },
+            ]}
+            value={settings.motion}
+            onChange={(v) => set('motion', v)}
           />
         </Row>
         <Row label="Japanese text size">

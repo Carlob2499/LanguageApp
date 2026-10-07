@@ -54,9 +54,8 @@ h3 {
 h1 {
   font-family: var(--font-latin-display);
   font-size: var(--fs-h1);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  font-variation-settings: 'opsz' 72;
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
 
 h2 {

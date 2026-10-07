@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 
 import { Button } from '@/app/components/Button'
 import { Choices, type Choice } from '@/app/components/Choices'
@@ -17,6 +17,8 @@ import { Speak } from '@/app/components/Speak'
 import { StrokeGlyph } from '@/app/components/StrokeGlyph'
 import { Tile } from '@/app/components/Tile'
 import { Vessel } from '@/app/components/Vessel'
+import { cue, fx } from '@/app/motion/bus'
+import { comboBeat } from '@/app/motion/ease'
 import { Link, useNavigate } from '@/app/router/index'
 import { useStudySession } from '@/app/study/useStudySession'
 import { GRADE_LABELS } from '@/engine/session'
@@ -36,6 +38,8 @@ const GRADE_ICON: Record<Grade, 'crack' | 'chevron' | 'check' | 'spark'> = {
   3: 'check',
   4: 'spark',
 }
+
+const Mended = lazy(() => import('@/app/motion/Mended'))
 
 /** Lapses after which a card counts as a leech (Anki's long-standing default). */
 const LEECH_LAPSES = 8
@@ -71,7 +75,38 @@ export function ReviewRoute() {
   const crackTimer = useRef(0)
   useEffect(() => () => window.clearTimeout(crackTimer.current), [])
 
+  /** Consecutive recalled cards this session; a miss resets it. */
+  const streak = useRef(0)
+
+  /** Sound and a flourish for the grade, on the frame the learner commits to it. */
+  function celebrate(g: Grade) {
+    const x = window.innerWidth / 2
+    const y = window.innerHeight * 0.42
+    if (g === 1) {
+      streak.current = 0
+      cue('crack')
+      return
+    }
+    if (g === 2) {
+      cue('tap')
+      return
+    }
+    streak.current += 1
+    cue('seal', streak.current)
+    fx({ kind: 'seal', x, y })
+    if ((session.card?.lapses ?? 0) > 0) {
+      fx({ kind: 'gold', x, y: y + 90 })
+      cue('gold', streak.current)
+    }
+    const beat = comboBeat(streak.current)
+    if (beat) {
+      fx({ kind: 'combo', beat })
+      if (beat >= 5) cue('taiko')
+    }
+  }
+
   function gradeWithCrack(g: Grade) {
+    celebrate(g)
     if (g === 1 && !cracking) {
       setCracking(true)
       const key = session.card?.key
@@ -120,7 +155,7 @@ export function ReviewRoute() {
   if (session.status === 'loading') {
     return (
       <div className={styles.center} role="status" aria-live="polite">
-        <p className={styles.muted}>Setting the table…</p>
+        <p className={styles.muted}>Loading your cards…</p>
       </div>
     )
   }
@@ -137,20 +172,19 @@ export function ReviewRoute() {
     return (
       <div className={styles.center}>
         {session.complete && <GoldFlecks />}
-        <Vessel
-          fill={1}
-          seams={Math.min(6, Math.ceil(session.done / 4))}
-          size={160}
-          label="Today's vessel, full"
-        />
+        {session.complete ? (
+          <Suspense fallback={null}>
+            <Mended label={`Today's bowl, mended with gold seams after ${session.done} cards`} />
+          </Suspense>
+        ) : (
+          <Vessel fill={1} seams={0} size={160} label="Today's bowl, full" />
+        )}
         <p className={styles.eyebrow}>{session.complete ? 'Session complete' : 'All clear'}</p>
-        <h1>
-          {session.complete ? `${session.done} cards, repaired.` : 'Nothing is due right now.'}
-        </h1>
+        <h1>{session.complete ? `${session.done} cards done.` : 'Nothing is due right now.'}</h1>
         <p className={styles.muted}>
           {session.complete
-            ? 'The next ones come back on their own schedule. Today counts.'
-            : 'Your next reviews arrive on their own schedule.'}
+            ? 'Your next reviews are scheduled. See you tomorrow.'
+            : 'Nothing is due. Your next reviews are scheduled.'}
         </p>
         <Button variant="primary" size="large" onClick={() => navigate('/')}>
           Back to today
@@ -266,7 +300,7 @@ export function ReviewRoute() {
         />
       ) : (
         <div className={styles.center} role="alert">
-          <p>This card's word is missing from the pack. Skipping it.</p>
+          <p>This card's word is missing from the word list. Skipping it.</p>
           <Button onClick={session.skip}>Skip</Button>
         </div>
       )}
@@ -390,7 +424,7 @@ function CardFace({
           ) : session.revealed ? (
             <span>Swipe right for Good, left for Again.</span>
           ) : !isReading ? (
-            <span>Think of the answer, then reveal.</span>
+            <span>Answer in your head, then reveal it.</span>
           ) : null}
         </div>
       </Tile>
@@ -829,7 +863,7 @@ function WritingFace({
               {result}
             </span>
           ) : showAnswer ? (
-            <span>Here it is, stroke by stroke. How well did you know it?</span>
+            <span>Compare it with yours, then grade how well you knew it.</span>
           ) : (
             <span>{kanji.strokes} strokes. Write it in order; Space shows the answer.</span>
           )}

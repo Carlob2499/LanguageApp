@@ -19,6 +19,8 @@ const DEVICE_SETTINGS = new Set([
   'jaTextScale',
   'reminder',
   'autoAudio',
+  'sound',
+  'motion',
 ])
 
 function newerCard(a: StudyCard, b: StudyCard): StudyCard {

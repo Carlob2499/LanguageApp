@@ -1,8 +1,11 @@
-import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { applyUpdate, subscribeUpdates } from '@/app/pwa'
 import { updateOfferAllowed } from '@/app/pwa-policy'
+import { cue, fx } from '@/app/motion/bus'
+import { motionTier } from '@/app/motion/tier'
 import { useLocation } from '@/app/router/index'
+import { useSettings } from '@/app/study/settings'
 
 import { Ambient } from './Ambient'
 import { Button } from './Button'
@@ -12,6 +15,23 @@ import { TabBar } from './TabBar'
 
 const Palette = lazy(() => import('./Palette'))
 const Pulse = lazy(() => import('./Pulse'))
+const Stage = lazy(() => import('@/app/motion/Stage'))
+const Opening = lazy(() => import('@/app/motion/Opening'))
+
+const OPENED_KEY = 'kintsugi.opened'
+
+/** The opening plays once per visit, for learners who have started, never on the welcome screen. */
+function shouldOpen(pathname: string): boolean {
+  if (pathname === '/welcome' || motionTier() === 'off') return false
+  if (!useSettings.getState().settings.onboarded) return false
+  try {
+    if (sessionStorage.getItem(OPENED_KEY)) return false
+    sessionStorage.setItem(OPENED_KEY, '1')
+  } catch {
+    return false
+  }
+  return true
+}
 
 function isTyping(target: EventTarget | null): boolean {
   return (
@@ -26,9 +46,22 @@ export function Shell({ children }: { children: ReactNode }) {
   const focused = pathname === '/review' || pathname === '/welcome' || pathname === '/placement'
   const wide = pathname.startsWith('/library')
   const [palette, setPalette] = useState<'search' | 'shortcuts' | null>(null)
+  const [opening, setOpening] = useState(() => shouldOpen(pathname))
+  const closeOpening = useCallback(() => setOpening(false), [])
   const [needRefresh, setNeedRefresh] = useState(false)
   const [updateDismissed, setUpdateDismissed] = useState(false)
   useEffect(() => subscribeUpdates((u) => setNeedRefresh(u.needRefresh)), [])
+
+  // A brush wipe and a swish when a session starts; other pages just cross-fade.
+  const previous = useRef(pathname)
+  useEffect(() => {
+    const from = previous.current
+    previous.current = pathname
+    if (pathname === '/review' && from !== '/review') {
+      fx({ kind: 'slash', heavy: true })
+      cue('swish')
+    }
+  }, [pathname])
 
   const offerUpdate = updateOfferAllowed(pathname, needRefresh) && !updateDismissed
   // The ambient layers arrive after the first paint so they never sit in the critical path.
@@ -63,6 +96,16 @@ export function Shell({ children }: { children: ReactNode }) {
     <div className={styles.shell} data-focused={focused ? 'true' : undefined}>
       {ambient && <Ambient intensity={focused ? 0.6 : 1} />}
       {ambient && <Grain />}
+      {ambient && motionTier() !== 'off' && (
+        <Suspense fallback={null}>
+          <Stage />
+        </Suspense>
+      )}
+      {opening && (
+        <Suspense fallback={null}>
+          <Opening onDone={closeOpening} />
+        </Suspense>
+      )}
       {ambient && pathname !== '/welcome' && (
         <Suspense fallback={null}>
           <Pulse />

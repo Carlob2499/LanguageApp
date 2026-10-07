@@ -16,7 +16,9 @@ test.describe('app shell', () => {
     await expect(page).toHaveTitle('Kintsugi')
     // A fresh install lands on the welcome flow.
     await expect(page).toHaveURL(/\/welcome$/)
-    await expect(page.getByRole('heading', { level: 1, name: /repaired in gold/ })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { level: 1, name: /one short session a day/ }),
+    ).toBeVisible()
 
     await page.goto('/about')
     await expect(page.getByRole('heading', { level: 1, name: 'Sources' })).toBeVisible()
@@ -47,12 +49,14 @@ test.describe('app shell', () => {
     request,
   }) => {
     const html = await (await request.get('/')).text()
-    expect(html).toContain('Mistakes, repaired in gold.')
+    expect(html).toContain('Learn Japanese, one short session a day.')
     expect(html).toContain('data-prerender')
     // No module script tag for the preload scanner: the loader adds it after the first paint.
     expect(html).not.toMatch(/<script type="module"[^>]*src=/)
     await page.goto('/')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mistakes, repaired in gold.')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Learn Japanese, one short session a day.',
+    )
     await expect(page.locator('[data-prerender]')).toHaveCount(0)
     await expect(page.locator('html')).not.toHaveAttribute('data-returning', '')
     await page.evaluate(() =>
@@ -65,7 +69,7 @@ test.describe('app shell', () => {
     await expect(page.locator('html')).toHaveAttribute('data-returning', '')
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
     await expect(page.getByRole('heading', { level: 1 })).not.toHaveText(
-      'Mistakes, repaired in gold.',
+      'Learn Japanese, one short session a day.',
     )
   })
 })

@@ -1,6 +1,6 @@
 All fonts in this folder are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org).
 They are subsets built from the Fontsource packages; the original licence files are:
-Zen Kaku Gothic New: node_modules/@fontsource/zen-kaku-gothic-new/LICENSE (Copyright 2022 The Zen Project Authors)
+M PLUS 2: node_modules/@fontsource/m-plus-2/LICENSE (Copyright 2016 The M+ FONTS Project Authors)
 Shippori Mincho: node_modules/@fontsource/shippori-mincho/LICENSE (Copyright 2020 The Shippori Mincho Project Authors)
-Instrument Sans: node_modules/@fontsource/instrument-sans/LICENSE (Copyright 2022 The Instrument Sans Project Authors)
-Fraunces: node_modules/@fontsource-variable/fraunces/LICENSE (Copyright 2019 The Fraunces Project Authors)
+Zen Antique: node_modules/@fontsource/zen-antique/LICENSE (Copyright 2021 The Zen Project Authors)
+Dela Gothic One: node_modules/@fontsource/dela-gothic-one/LICENSE (Copyright 2020 The Dela Gothic Project Authors)

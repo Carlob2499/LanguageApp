@@ -112,7 +112,7 @@ export default defineConfig(({ isSsrBuild }) => ({
         name: 'Kintsugi',
         short_name: 'Kintsugi',
         description:
-          'Learn Japanese kanji and vocabulary from kana to JLPT N1. Mistakes, repaired in gold.',
+          'Learn Japanese kanji and vocabulary from kana to JLPT N1, one short session a day.',
         lang: 'en',
         start_url: '/',
         scope: '/',

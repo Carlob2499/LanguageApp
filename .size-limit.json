@@ -34,17 +34,18 @@
     "gzip": true
   },
   {
-    "name": "fonts for a first N5 session: base + N5 slices, three faces (raw woff2 bytes)",
+    "name": "fonts for a first N5 session: base + N5 slices, five faces (raw woff2 bytes)",
     "path": [
-      "dist/fonts/zkgn-400-base.woff2",
-      "dist/fonts/zkgn-700-base.woff2",
+      "dist/fonts/mplus2-400-base.woff2",
+      "dist/fonts/mplus2-700-base.woff2",
       "dist/fonts/shippori-700-base.woff2",
-      "dist/fonts/zkgn-400-n5.woff2",
+      "dist/fonts/mplus2-400-n5.woff2",
       "dist/fonts/shippori-700-n5.woff2",
-      "dist/fonts/instrument-sans-*.woff2",
-      "dist/fonts/fraunces-variable.woff2"
+      "dist/fonts/zenantique-*.woff2",
+      "dist/fonts/dela-*.woff2",
+      "dist/fonts/mplus2-[4-7]00.woff2"
     ],
-    "limit": "400 kB",
+    "limit": "440 kB",
     "brotli": false
   }
 ]

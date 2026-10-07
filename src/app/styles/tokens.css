@@ -49,12 +49,13 @@
   --focus: var(--k-gold);
 
   /* Type */
-  --font-latin: 'Instrument Sans', 'Zen Kaku Gothic New', 'Hiragino Sans', system-ui, sans-serif;
-  --font-latin-display:
-    'Fraunces Variable', 'Shippori Mincho', 'Hiragino Mincho ProN', Georgia, serif;
+  --font-latin: 'M PLUS 2', 'Hiragino Sans', system-ui, sans-serif;
+  --font-latin-display: 'Zen Antique', 'Shippori Mincho', 'Hiragino Mincho ProN', Georgia, serif;
+  /* Combo text, results numbers: heavy poster gothic, used in short bursts only. */
+  --font-telop: 'Dela Gothic One', 'M PLUS 2', 'Hiragino Sans', sans-serif;
   --font-ja:
-    'Zen Kaku Gothic New', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic',
-    'Noto Sans CJK JP', sans-serif;
+    'M PLUS 2', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Noto Sans CJK JP',
+    sans-serif;
   --font-ja-display:
     'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif CJK JP', serif;
 

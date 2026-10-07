@@ -35,7 +35,8 @@ export async function showReminder(due: number): Promise<void> {
   if (!notificationsSupported() || Notification.permission !== 'granted') return
   const title =
     due > 0 ? `${due} ${due === 1 ? 'card is' : 'cards are'} waiting` : 'Time for Kintsugi'
-  const body = due > 0 ? 'A short session keeps the seams gold.' : 'Meet something new today?'
+  const body =
+    due > 0 ? 'A short session keeps your reviews on schedule.' : 'Learn something new today?'
   try {
     const reg = await navigator.serviceWorker.getRegistration()
     if (reg) {

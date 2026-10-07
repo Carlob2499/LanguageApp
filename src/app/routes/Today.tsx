@@ -85,19 +85,19 @@ export function TodayRoute() {
           </p>
           <h1 id="today-title">
             {counts === undefined
-              ? 'Setting the table…'
+              ? 'Loading your cards…'
               : due > 0
                 ? `${due} to repair.`
                 : newLeft > 0
-                  ? 'Nothing due. Meet something new?'
-                  : 'All repaired for today.'}
+                  ? 'Nothing due. Learn something new?'
+                  : 'All done for today.'}
           </h1>
         </div>
         <Vessel
           fill={fill}
           seams={Math.min(6, Math.floor(done / 4))}
           size={88}
-          label={`Today's vessel, ${Math.round(fill * 100)}% full`}
+          label={`Today's bowl, ${Math.round(fill * 100)}% full`}
           className={styles.vessel}
         />
       </header>
@@ -108,7 +108,7 @@ export function TodayRoute() {
             ? `${due} reviews are waiting. New cards are done for today.`
             : newLeft > 0
               ? `${newLeft} new ${newLeft === 1 ? 'card' : 'cards'} ready to meet.`
-              : 'Come back tomorrow, or wander the library in the meantime.'}
+              : 'Come back tomorrow, or browse the library.'}
       </p>
       <div className={styles.actions}>
         {!settings.kanaReady && (

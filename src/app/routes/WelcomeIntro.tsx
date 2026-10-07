@@ -52,7 +52,7 @@ export function WelcomeIntro({
             <div className={styles.journeyWrap}>
               <ol
                 className={styles.journey}
-                aria-label="How Kintsugi works: meet a kanji, forget it and it cracks, recall it and the crack turns gold"
+                aria-label="A card you know, the same card after a miss with a crack across it, and once you recall it with the crack filled in gold"
               >
                 <li className={styles.tile} aria-hidden="true">
                   <span className={styles.tileKanji} lang="ja">
@@ -73,17 +73,17 @@ export function WelcomeIntro({
                 </li>
               </ol>
               <p className={styles.journeyCaption} aria-hidden="true">
-                Meet · Crack · Repair
+                Learned · Missed · Mended
               </p>
             </div>
           </>
         )}
       </div>
       <p className={styles.eyebrow}>Kintsugi</p>
-      <h1>Mistakes, repaired in gold.</h1>
+      <h1>Learn Japanese, one short session a day.</h1>
       <p className={styles.lede}>
-        Kanji and words from kana to N1, one short session a day. Every kanji writes itself in front
-        of you, stroke by stroke.
+        Kanji and vocabulary from kana to JLPT N1. Each kanji is drawn stroke by stroke, and the
+        cards you miss come back sooner.
       </p>
       <Button
         variant="primary"

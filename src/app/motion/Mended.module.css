@@ -1,0 +1,5 @@
+.canvas {
+  width: min(78vw, 340px);
+  height: min(60vw, 260px);
+  display: block;
+}
