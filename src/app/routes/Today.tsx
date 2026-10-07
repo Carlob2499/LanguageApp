@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Icon } from '@/app/components/Icon'
 import { StrokeGlyph } from '@/app/components/StrokeGlyph'
 import { Vessel } from '@/app/components/Vessel'
+import { CountUp } from '@/app/components/CountUp'
 import { Link } from '@/app/router/index'
 import { kanaLessonOrder } from '@/app/study/library'
 import { useSettings } from '@/app/study/settings'
@@ -133,18 +134,20 @@ export function TodayRoute() {
           <dt>Streak</dt>
           <dd>
             <span className={styles.ember} aria-hidden="true" />
-            {streak}
+            <CountUp value={streak} />
             <span className={styles.of}> {streak === 1 ? 'day' : 'days'}</span>
           </dd>
         </div>
         <div>
           <dt>Reviews today</dt>
-          <dd>{done}</dd>
+          <dd>
+            <CountUp value={done} />
+          </dd>
         </div>
         <div>
           <dt>New today</dt>
           <dd>
-            {counts?.today.newIntroduced ?? 0}
+            <CountUp value={counts?.today.newIntroduced ?? 0} />
             <span className={styles.of}> / {settings.newPerDay}</span>
           </dd>
         </div>

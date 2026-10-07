@@ -44,7 +44,7 @@ function isTyping(target: EventTarget | null): boolean {
 export function Shell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
   const focused = pathname === '/review' || pathname === '/welcome' || pathname === '/placement'
-  const wide = pathname.startsWith('/library')
+  const wide = pathname.startsWith('/library') || pathname === '/placement'
   const [palette, setPalette] = useState<'search' | 'shortcuts' | null>(null)
   const [opening, setOpening] = useState(() => shouldOpen(pathname))
   const closeOpening = useCallback(() => setOpening(false), [])

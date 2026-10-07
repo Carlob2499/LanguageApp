@@ -1,3 +1,4 @@
+import { cue } from '@/app/motion/bus'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/app/components/Button'
@@ -61,7 +62,10 @@ export function WelcomeRoute() {
           gold={gold}
           replay={replay}
           onReplay={() => setReplay((n) => n + 1)}
-          onStart={() => setStep('kana')}
+          onStart={() => {
+            cue('koto', 0)
+            setStep('kana')
+          }}
         />
       )}
       {step === 'kana' && (
@@ -77,7 +81,10 @@ export function WelcomeRoute() {
               role="radio"
               aria-checked={readsKana === false}
               className={styles.option}
-              onClick={() => setReadsKana(false)}
+              onClick={() => {
+                cue('tap')
+                setReadsKana(false)
+              }}
             >
               <span className={styles.optionLevel} lang="ja">
                 あ
@@ -91,7 +98,10 @@ export function WelcomeRoute() {
               role="radio"
               aria-checked={readsKana === true}
               className={styles.option}
-              onClick={() => setReadsKana(true)}
+              onClick={() => {
+                cue('tap')
+                setReadsKana(true)
+              }}
             >
               <span className={styles.optionLevel} lang="ja">
                 漢
@@ -135,7 +145,10 @@ export function WelcomeRoute() {
                 role="radio"
                 aria-checked={level === l}
                 className={styles.option}
-                onClick={() => setLevel(l)}
+                onClick={() => {
+                  cue('koto', LEVELS.indexOf(l))
+                  setLevel(l)
+                }}
               >
                 <span className={styles.optionLevel}>{l}</span>
                 <span className={styles.optionText}>{LEVEL_BLURB[l]}</span>
@@ -145,7 +158,14 @@ export function WelcomeRoute() {
           <p className={styles.note}>
             JLPT levels here are unofficial estimates from community lists.
           </p>
-          <Button variant="primary" size="large" onClick={() => setStep(2)}>
+          <Button
+            variant="primary"
+            size="large"
+            onClick={() => {
+              cue('koto', 2)
+              setStep(2)
+            }}
+          >
             Continue
           </Button>
         </>
@@ -165,7 +185,10 @@ export function WelcomeRoute() {
                 role="radio"
                 aria-checked={newPerDay === n}
                 className={styles.option}
-                onClick={() => setNewPerDay(n)}
+                onClick={() => {
+                  cue('tap')
+                  setNewPerDay(n)
+                }}
               >
                 <span className={styles.optionLevel}>{n}</span>
                 <span className={styles.optionText}>

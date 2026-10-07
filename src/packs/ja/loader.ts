@@ -105,12 +105,6 @@ export function loadConfusables(): Promise<ConfusableItem[]> {
   return fetchJson('/packs/ja/confusables.json', (d) => items<ConfusableItem>(d, 'confusables'))
 }
 
-export function loadPlacementLures(): Promise<Array<{ text: string; mora: number }>> {
-  return fetchJson('/packs/ja/placement.json', (d) =>
-    items<{ text: string; mora: number }>(d, 'placement'),
-  )
-}
-
 /** Finds a kanji in any level's pack (packs are small and cached). */
 export async function findKanji(
   char: string,

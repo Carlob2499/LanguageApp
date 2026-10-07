@@ -1,162 +1,121 @@
 /**
- * Placement by a Yes/No vocabulary test with pseudoword lures, run as an adaptive staircase over
- * level bands. The learner says "know" or "don't know" to each item; a block's score is the hit
- * rate on real words corrected by the false-alarm rate on pseudowords. The estimate is a starting
- * point, never a certificate.
+ * Adaptive placement. The learner answers real multiple-choice questions (what a word means,
+ * how it is read) and the test keeps a probability for each possible "ability": how many JLPT
+ * levels, counted from N5, they have already mastered (0 to 5). Every answer updates those
+ * probabilities, and the next question comes from the level that will tell us the most. It stops
+ * as soon as the answer is clear, and never after more than 20 questions.
+ *
+ * Questions are checked answers, so unlike a yes/no vocabulary test the result does not depend on
+ * how honest or modest the learner is. The result is still a starting point, not a certificate.
  */
-export interface PlacementItem {
-  text: string
-  /** Real word (band index) or lure. */
-  real: boolean
-  band: number
-  /** Reading or gloss shown as the item's secondary line, never for lures. */
-  hint?: string
-}
 
-export interface PlacementConfig {
-  bands: string[]
-  blockSize: number
-  luresPerBlock: number
-  /** Corrected score at or above which the learner moves up a band. */
-  up: number
-  /** Corrected score below which the learner moves down a band. */
-  down: number
-  maxBlocks: number
-}
+/** Number of levels (N5..N1). Ability runs 0..LEVELS: levels below it are mastered. */
+export const LEVELS_COUNT = 5
+export const MAX_QUESTIONS = 20
+export const MIN_QUESTIONS = 10
+/** Stop early once one ability holds this much of the probability. */
+export const CONFIDENT = 0.8
 
-export const DEFAULT_PLACEMENT: PlacementConfig = {
-  bands: ['N5', 'N4', 'N3', 'N2', 'N1'],
-  blockSize: 6,
-  luresPerBlock: 2,
-  up: 0.6,
-  down: 0.3,
-  maxBlocks: 7,
+/** P(correct | learner has mastered this level, is partway through it, or has not reached it). */
+const P_MASTERED = 0.93
+const P_PARTWAY = 0.55
+const P_BEYOND = 0.1
+/** A wrong or "not sure" answer is just the complement; guessing is already in P_BEYOND. */
+
+export interface Answered {
+  level: number
+  correct: boolean
 }
 
 export interface PlacementState {
-  config: PlacementConfig
-  band: number
-  block: PlacementItem[]
-  index: number
-  answers: boolean[]
-  /** Corrected score per completed block, keyed by band. */
-  scores: Array<{ band: number; score: number }>
-  reversals: number
-  lastDirection: 'up' | 'down' | null
+  /** Probability of each ability 0..LEVELS_COUNT; sums to 1. */
+  posterior: number[]
+  answers: Answered[]
   done: boolean
 }
 
-export interface ItemSource {
-  /** Returns `count` fresh real items for a band. */
-  real: (band: number, count: number) => PlacementItem[]
-  /** Returns `count` fresh lures. */
-  lure: (count: number) => PlacementItem[]
-  /** Deterministic shuffle for tests; defaults to Math.random. */
-  shuffle?: <T>(items: T[]) => T[]
+export function startPlacement(): PlacementState {
+  const n = LEVELS_COUNT + 1
+  return { posterior: Array.from({ length: n }, () => 1 / n), answers: [], done: false }
 }
 
-function makeBlock(state: PlacementState, source: ItemSource): PlacementItem[] {
-  const real = source.real(state.band, state.config.blockSize - state.config.luresPerBlock)
-  const lures = source.lure(state.config.luresPerBlock)
-  const shuffle = source.shuffle ?? ((items) => [...items].sort(() => Math.random() - 0.5))
-  return shuffle([...real, ...lures])
+/** Chance of a correct answer on a level-`level` question for a learner of this ability. */
+export function pCorrect(ability: number, level: number): number {
+  if (level < ability) return P_MASTERED
+  if (level === ability) return P_PARTWAY
+  return P_BEYOND
 }
 
-export function startPlacement(
-  source: ItemSource,
-  config: PlacementConfig = DEFAULT_PLACEMENT,
-): PlacementState {
-  const base: PlacementState = {
-    config,
-    band: 0,
-    block: [],
-    index: 0,
-    answers: [],
-    scores: [],
-    reversals: 0,
-    lastDirection: null,
-    done: false,
+function normalise(p: number[]): number[] {
+  const total = p.reduce((a, b) => a + b, 0)
+  return p.map((x) => x / total)
+}
+
+function posteriorAfter(posterior: number[], level: number, correct: boolean): number[] {
+  return normalise(
+    posterior.map((p, a) => p * (correct ? pCorrect(a, level) : 1 - pCorrect(a, level))),
+  )
+}
+
+function entropy(p: number[]): number {
+  return -p.reduce((sum, x) => (x > 0 ? sum + x * Math.log2(x) : sum), 0)
+}
+
+/** The level whose next question is expected to leave the least uncertainty. */
+export function chooseLevel(posterior: number[], asked: number[] = []): number {
+  let best = 0
+  let bestScore = Infinity
+  for (let level = 0; level < LEVELS_COUNT; level++) {
+    const pRight = posterior.reduce((s, p, a) => s + p * pCorrect(a, level), 0)
+    let expected =
+      pRight * entropy(posteriorAfter(posterior, level, true)) +
+      (1 - pRight) * entropy(posteriorAfter(posterior, level, false))
+    // Variety: a small penalty for asking the same level many times in a row.
+    const streak = asked.slice(-3).filter((l) => l === level).length
+    expected += streak >= 3 ? 0.15 : 0
+    if (expected < bestScore - 1e-9) {
+      bestScore = expected
+      best = level
+    }
   }
-  return { ...base, block: makeBlock(base, source) }
+  return best
 }
 
-export function currentItem(state: PlacementState): PlacementItem | undefined {
-  return state.done ? undefined : state.block[state.index]
+export function nextLevel(state: PlacementState): number {
+  return chooseLevel(
+    state.posterior,
+    state.answers.map((a) => a.level),
+  )
+}
+
+export function mostLikely(posterior: number[]): { ability: number; confidence: number } {
+  let ability = 0
+  posterior.forEach((p, a) => {
+    if (p > (posterior[ability] ?? 0)) ability = a
+  })
+  return { ability, confidence: posterior[ability] ?? 0 }
+}
+
+export function answerPlacement(state: PlacementState, level: number, correct: boolean) {
+  if (state.done) return state
+  const posterior = posteriorAfter(state.posterior, level, correct)
+  const answers = [...state.answers, { level, correct }]
+  const { confidence } = mostLikely(posterior)
+  const done =
+    answers.length >= MAX_QUESTIONS || (answers.length >= MIN_QUESTIONS && confidence >= CONFIDENT)
+  return { posterior, answers, done }
+}
+
+/** Expected ability, 0..LEVELS_COUNT: where the level meter's marker sits. */
+export function meter(state: PlacementState): number {
+  return state.posterior.reduce((s, p, a) => s + p * a, 0)
+}
+
+/** Level index (0 = N5) to start at: the first level not yet mastered. */
+export function startLevelIndex(state: PlacementState): number {
+  return Math.min(mostLikely(state.posterior).ability, LEVELS_COUNT - 1)
 }
 
 export function progress(state: PlacementState): { done: number; total: number } {
-  return {
-    done: state.scores.length * state.config.blockSize + state.index,
-    total: state.config.maxBlocks * state.config.blockSize,
-  }
-}
-
-/** Corrected recognition: hits on real words minus false alarms on lures (each lure counts double). */
-export function blockScore(block: PlacementItem[], answers: boolean[]): number {
-  const reals = block.filter((i) => i.real).length
-  const lures = block.length - reals
-  let hits = 0
-  let falseAlarms = 0
-  block.forEach((item, i) => {
-    if (!answers[i]) return
-    if (item.real) hits++
-    else falseAlarms++
-  })
-  const hitRate = reals === 0 ? 0 : hits / reals
-  const faRate = lures === 0 ? 0 : falseAlarms / lures
-  return Math.max(0, hitRate - faRate)
-}
-
-export function answerPlacement(
-  state: PlacementState,
-  knows: boolean,
-  source: ItemSource,
-): PlacementState {
-  if (state.done) return state
-  const answers = [...state.answers, knows]
-  if (answers.length < state.block.length) return { ...state, answers, index: state.index + 1 }
-
-  const score = blockScore(state.block, answers)
-  const scores = [...state.scores, { band: state.band, score }]
-  const top = state.config.bands.length - 1
-  let direction: 'up' | 'down' | null = null
-  let band = state.band
-  if (score >= state.config.up && band < top) {
-    direction = 'up'
-    band++
-  } else if (score < state.config.down && band > 0) {
-    direction = 'down'
-    band--
-  }
-  const reversals =
-    state.reversals +
-    (direction && state.lastDirection && direction !== state.lastDirection ? 1 : 0)
-  const atTop = score >= state.config.up && state.band === top
-  const atBottom = score < state.config.down && state.band === 0
-  const done =
-    direction === null ||
-    reversals >= 2 ||
-    scores.length >= state.config.maxBlocks ||
-    atTop ||
-    atBottom
-  const next: PlacementState = {
-    ...state,
-    band,
-    answers: [],
-    index: 0,
-    scores,
-    reversals,
-    lastDirection: direction ?? state.lastDirection,
-    done,
-    block: [],
-  }
-  return done ? next : { ...next, block: makeBlock(next, source) }
-}
-
-/** The highest band the learner cleared; N5 (index 0) when none. */
-export function estimateBand(state: PlacementState): number {
-  let best = 0
-  for (const { band, score } of state.scores)
-    if (score >= state.config.up && band + 1 > best) best = band + 1
-  return Math.min(best, state.config.bands.length - 1)
+  return { done: state.answers.length, total: MAX_QUESTIONS }
 }

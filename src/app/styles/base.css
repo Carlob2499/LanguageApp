@@ -117,3 +117,33 @@ rt {
     scroll-behavior: auto !important;
   }
 }
+
+/* Page changes: the new page rises into place while the old one lifts away. */
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-0.375rem);
+  }
+}
+
+::view-transition-old(root) {
+  animation: 160ms ease-in both vt-out;
+}
+
+::view-transition-new(root) {
+  animation: 340ms cubic-bezier(0.2, 0.8, 0.2, 1) both vt-in;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useState } from 'react'
 
+import { CountUp } from '@/app/components/CountUp'
 import { Vessel } from '@/app/components/Vessel'
 import { Link } from '@/app/router/index'
 import { useSettings } from '@/app/study/settings'
@@ -130,15 +131,21 @@ export function ProgressRoute() {
       <dl className={styles.stats}>
         <div>
           <dt>Reviews</dt>
-          <dd>{totalReviews}</dd>
+          <dd>
+            <CountUp value={totalReviews} />
+          </dd>
         </div>
         <div>
           <dt>Minutes</dt>
-          <dd>{minutes}</dd>
+          <dd>
+            <CountUp value={minutes} />
+          </dd>
         </div>
         <div>
           <dt>Mistakes recovered</dt>
-          <dd>{cards.filter((c) => c.lapses > 0 && c.state === 'review').length}</dd>
+          <dd>
+            <CountUp value={cards.filter((c) => c.lapses > 0 && c.state === 'review').length} />
+          </dd>
         </div>
       </dl>
 
@@ -155,10 +162,10 @@ export function ProgressRoute() {
           not met
         </p>
         <ul className={styles.mosaic} role="list">
-          {levelKanji.map((k) => {
+          {levelKanji.map((k, idx) => {
             const st = kanjiState.get(k.id)
             return (
-              <li key={k.id}>
+              <li key={k.id} style={{ '--i': Math.min(idx, 40) } as React.CSSProperties}>
                 <Link
                   to={`/kanji/${encodeURIComponent(k.char)}`}
                   className={styles.tileK}
@@ -190,13 +197,18 @@ export function ProgressRoute() {
             role="img"
             aria-label={`Review activity over the last ${WEEKS} weeks: ${activeDays} active days, ${totalReviews} reviews in all`}
           >
-            {grid.map((g) => (
+            {grid.map((g, i) => (
               <span
                 key={g.day}
                 className={styles.cell}
                 data-empty={g.count === 0 ? 'true' : undefined}
                 data-today={g.day === todayKey ? 'true' : undefined}
-                style={g.count === 0 ? undefined : { opacity: 0.35 + 0.65 * (g.count / max) }}
+                style={
+                  {
+                    '--i': i,
+                    ...(g.count === 0 ? {} : { opacity: 0.35 + 0.65 * (g.count / max) }),
+                  } as React.CSSProperties
+                }
                 title={`${g.day}: ${g.count} reviews`}
               />
             ))}
