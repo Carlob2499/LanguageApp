@@ -2,6 +2,9 @@ import { readFileSync } from 'node:fs'
 
 import { expect, test } from '@playwright/test'
 
+import { displayForm, primaryGloss, readingsFor } from '../src/packs/ja/cards'
+import type { VocabItem } from '../src/packs/ja/types'
+
 test.describe('beginner and placement paths', () => {
   test('kana first: sessions teach kana with choices and the kana table shows progress', async ({
     page,
@@ -61,6 +64,41 @@ test.describe('beginner and placement paths', () => {
     await page.getByRole('button', { name: /^Begin at N5/ }).click()
     await expect(page).toHaveURL(/\/$/)
     await expect(page.getByText('Today · N5')).toBeVisible()
+  })
+
+  test('a learner who knows every word is placed at the top in at most 20 questions', async ({
+    page,
+  }) => {
+    // Right answers per written form, straight from the packs the questions are built from.
+    const right = new Map<string, Set<string>>()
+    for (const level of ['N5', 'N4', 'N3', 'N2', 'N1']) {
+      const pack = JSON.parse(readFileSync(`public/packs/ja/vocab-${level}.json`, 'utf8')) as {
+        items: VocabItem[]
+      }
+      for (const word of pack.items) {
+        const form = displayForm(word)
+        const set = right.get(form) ?? new Set<string>()
+        set.add(primaryGloss(word))
+        for (const r of readingsFor(word, form)) set.add(r)
+        right.set(form, set)
+      }
+    }
+    await page.goto('/placement')
+    const group = page.getByRole('group', { name: 'Choose an answer' })
+    let answered = 0
+    while (answered < 20 && !(await page.getByText(/Start around/).isVisible())) {
+      await expect(group.getByRole('button').first()).toBeEnabled()
+      const form = (await page.locator('p[lang="ja"]').first().innerText()).trim()
+      const texts = await group.getByRole('button').locator('span').allInnerTexts()
+      const accepted = right.get(form)
+      const index = texts.findIndex((t) => accepted?.has(t.trim()))
+      expect(index, `no right option found for ${form}`).toBeGreaterThanOrEqual(0)
+      await group.getByRole('button').nth(index).click()
+      answered++
+      await page.waitForTimeout(450)
+    }
+    expect(answered).toBeLessThanOrEqual(20)
+    await expect(page.getByRole('heading', { level: 1, name: /Start around N1/ })).toBeVisible()
   })
 
   test('placement questions are checked, keyboard-answerable and sized for the screen', async ({
