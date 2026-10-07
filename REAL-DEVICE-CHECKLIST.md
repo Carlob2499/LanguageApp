@@ -58,3 +58,13 @@ Automated tests run Chromium and WebKit in CI, which is close to iOS Safari but 
 - [ ] Library: the split view shows the selected kanji alongside; J/K move; / searches.
 - [ ] A full session with the keyboard only: Space, 1–4, U, Esc.
 - [ ] Reminder: Settings → Reminder → Allow notifications, set the time two minutes ahead, keep the tab open: a notification arrives.
+
+## Motion, sound and typing
+
+- [ ] The opening plays once per visit, lands near three seconds, and any tap skips it.
+- [ ] Sound is audible with the silent switch off and silent with it on. Settings → Sound off mutes everything.
+- [ ] Right answers stamp a seal on the tile's corner with a koto note; a streak of three, five and ten shows the combo text; five and ten add a drum.
+- [ ] A missed card cracks quietly with a soft tick, with no shake and no red flash.
+- [ ] Settings → Motion → Gentle removes the brush wipe, combo text and drum but keeps the seals and gold. Reduce Motion in iOS settings turns animation off.
+- [ ] The session-complete bowl assembles and the gold seams run in under four seconds.
+- [ ] On a reading card, typing in romaji shows live kana below the field; switching to Kana accepts a Japanese keyboard.
