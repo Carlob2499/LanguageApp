@@ -47,3 +47,35 @@ html[data-theme='light'] .shell {
     max-width: 92rem;
   }
 }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(6.5rem + var(--safe-bottom));
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  width: min(100% - 2rem, 30rem);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-l);
+  background: var(--bg-raised);
+  border: 1px solid rgb(217 164 65 / 0.4);
+  box-shadow: 0 24px 48px -24px rgb(0 0 0 / 0.9);
+}
+
+.toastText {
+  flex: 1 1 12rem;
+  margin: 0;
+}
+
+@media (min-width: 900px) {
+  .toast {
+    left: auto;
+    right: var(--sp-6);
+    bottom: var(--sp-6);
+    transform: none;
+  }
+}

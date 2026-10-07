@@ -1,13 +1,17 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
 
+import { applyUpdate, subscribeUpdates } from '@/app/pwa'
+import { updateOfferAllowed } from '@/app/pwa-policy'
 import { useLocation } from '@/app/router/index'
 
 import { Ambient } from './Ambient'
+import { Button } from './Button'
 import { Grain } from './Grain'
 import styles from './Shell.module.css'
 import { TabBar } from './TabBar'
 
 const Palette = lazy(() => import('./Palette'))
+const Pulse = lazy(() => import('./Pulse'))
 
 function isTyping(target: EventTarget | null): boolean {
   return (
@@ -22,6 +26,11 @@ export function Shell({ children }: { children: ReactNode }) {
   const focused = pathname === '/review' || pathname === '/welcome' || pathname === '/placement'
   const wide = pathname.startsWith('/library')
   const [palette, setPalette] = useState<'search' | 'shortcuts' | null>(null)
+  const [needRefresh, setNeedRefresh] = useState(false)
+  const [updateDismissed, setUpdateDismissed] = useState(false)
+  useEffect(() => subscribeUpdates((u) => setNeedRefresh(u.needRefresh)), [])
+
+  const offerUpdate = updateOfferAllowed(pathname, needRefresh) && !updateDismissed
   // The ambient layers arrive after the first paint so they never sit in the critical path.
   const [ambient, setAmbient] = useState(false)
   useEffect(() => {
@@ -54,6 +63,11 @@ export function Shell({ children }: { children: ReactNode }) {
     <div className={styles.shell} data-focused={focused ? 'true' : undefined}>
       {ambient && <Ambient intensity={focused ? 0.6 : 1} />}
       {ambient && <Grain />}
+      {ambient && pathname !== '/welcome' && (
+        <Suspense fallback={null}>
+          <Pulse />
+        </Suspense>
+      )}
       <a className="visually-hidden" href="#main">
         Skip to content
       </a>
@@ -61,6 +75,17 @@ export function Shell({ children }: { children: ReactNode }) {
         {children}
       </main>
       {!focused && <TabBar onSearch={() => setPalette('search')} />}
+      {offerUpdate && (
+        <div className={styles.toast} role="status" aria-live="polite">
+          <p className={styles.toastText}>A new version of Kintsugi is ready.</p>
+          <Button variant="primary" onClick={() => void applyUpdate()}>
+            Restart now
+          </Button>
+          <Button variant="quiet" onClick={() => setUpdateDismissed(true)}>
+            Later
+          </Button>
+        </div>
+      )}
       {palette && (
         <Suspense fallback={null}>
           <Palette initialView={palette} onClose={() => setPalette(null)} />

@@ -32,10 +32,10 @@ export interface QueueInput {
 export function buildQueue(input: QueueInput): StudyCard[] {
   const { cards, candidates, settings, today, now } = input
   const due = cards
-    .filter((c) => c.state !== 'new' && c.due <= now)
+    .filter((c) => c.state !== 'new' && c.due <= now && !c.suspended)
     .sort((a, b) => a.due - b.due)
     .slice(0, Math.max(0, settings.maxReviews - today.reviewsDone))
-  const backlog = cards.filter((c) => c.state !== 'new' && c.due <= now).length
+  const backlog = cards.filter((c) => c.state !== 'new' && c.due <= now && !c.suspended).length
   const newAllowance =
     backlog > settings.backlogGate ? 0 : Math.max(0, settings.newPerDay - today.newIntroduced)
   const fresh = candidates.slice(0, newAllowance)

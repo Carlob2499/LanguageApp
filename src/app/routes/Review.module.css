@@ -395,3 +395,32 @@
   z-index: -1;
   pointer-events: none;
 }
+
+.leech {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-m);
+  background: var(--bg-raised);
+  border: 1px solid rgb(227 66 52 / 0.4);
+}
+
+.leechText {
+  margin: 0;
+  color: var(--fg-muted);
+}
+
+.leechButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.leechLink {
+  color: var(--accent-text, var(--k-gold));
+  font-weight: 600;
+  min-height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+}

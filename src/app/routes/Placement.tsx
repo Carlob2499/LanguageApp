@@ -4,6 +4,7 @@ import { Button } from '@/app/components/Button'
 import { Furigana } from '@/app/components/Furigana'
 import { useNavigate } from '@/app/router/index'
 import { useSettings } from '@/app/study/settings'
+import { requestPersistentStorage } from '@/app/study/storage'
 import {
   answerPlacement,
   currentItem,
@@ -99,6 +100,7 @@ export function PlacementRoute() {
 
   async function finish(level: Level) {
     await update({ level, placedAt: estimate ?? level, onboarded: true, kanaReady: true })
+    void requestPersistentStorage()
     navigate('/')
   }
 

@@ -1,0 +1,39 @@
+// @vitest-environment node
+import { describe, expect, it } from 'vitest'
+
+import {
+  decodeKey,
+  deriveKeys,
+  encodeKey,
+  generateSyncKey,
+  open,
+  readVersion,
+  seal,
+} from './crypto'
+
+describe('sync keys', () => {
+  it('prints 128 bits as 26 readable characters and reads them back, forgiving case and misreads', () => {
+    const key = generateSyncKey()
+    const text = encodeKey(key)
+    expect(text.replace(/-/g, '')).toHaveLength(26)
+    expect(decodeKey(text)).toEqual(key)
+    expect(decodeKey(text.toLowerCase().replace(/-/g, ' '))).toEqual(key)
+    expect(decodeKey('too short')).toBeUndefined()
+    const withO = text.replace(/0/g, 'O')
+    expect(decodeKey(withO)).toEqual(key)
+  })
+
+  it('derives a stable blob id and an AES key that round-trips, and nothing from a wrong key', async () => {
+    const key = generateSyncKey()
+    const a = await deriveKeys(key)
+    const b = await deriveKeys(key)
+    expect(a.id).toBe(b.id)
+    expect(a.id).toMatch(/^[0-9a-f]{32}$/)
+    const payload = await seal(a.aes, 7, new TextEncoder().encode('{"v":1}'))
+    expect(readVersion(payload)).toBe(7)
+    expect(new TextDecoder().decode(await open(b.aes, payload))).toBe('{"v":1}')
+    const other = await deriveKeys(generateSyncKey())
+    expect(other.id).not.toBe(a.id)
+    await expect(open(other.aes, payload)).rejects.toBeDefined()
+  })
+})

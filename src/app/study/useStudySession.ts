@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { db, localDay, withReopen } from '@/db'
+import { isQuotaError } from '@/app/study/storage'
 import { buildQueue } from '@/engine/queue'
 import { Scheduler } from '@/engine/scheduler'
 import {
@@ -49,6 +50,10 @@ export interface StudySession {
   answer: (verdict: Verdict) => void
   grade: (grade: Grade) => Promise<void>
   undo: () => Promise<void>
+  /** The card just graded, after scheduling; drives the leech prompt. */
+  lastGraded?: StudyCard
+  /** Sets a card aside: it leaves future queues until the learner clears it in the library. */
+  suspend: (key: string) => Promise<void>
 }
 
 async function readTodayCounts(now: number) {
@@ -183,27 +188,43 @@ export function useStudySession(): StudySession {
       setState(next)
       setVerdict(undefined)
       shownAt.current = now
-      await withReopen(() =>
-        db.transaction('rw', db.cards, db.reviews, db.days, db.settings, async () => {
-          await db.cards.put(card)
-          await db.reviews.add(record)
-          const day = localDay(now)
-          const row = (await db.days.get(day)) ?? {
-            day,
-            newIntroduced: 0,
-            reviewsDone: 0,
-            timeMs: 0,
-          }
-          row.reviewsDone += 1
-          row.timeMs += record.durationMs ?? 0
-          if (before.state === 'new') row.newIntroduced += 1
-          await db.days.put(row)
-          await persistIndex(next)
-        }),
-      )
+      try {
+        await withReopen(() =>
+          db.transaction('rw', db.cards, db.reviews, db.days, db.settings, async () => {
+            await db.cards.put(card)
+            await db.reviews.add(record)
+            const day = localDay(now)
+            const row = (await db.days.get(day)) ?? {
+              day,
+              newIntroduced: 0,
+              reviewsDone: 0,
+              timeMs: 0,
+            }
+            row.reviewsDone += 1
+            row.timeMs += record.durationMs ?? 0
+            if (before.state === 'new') row.newIntroduced += 1
+            await db.days.put(row)
+            await persistIndex(next)
+          }),
+        )
+      } catch (e) {
+        setError(
+          isQuotaError(e)
+            ? 'This device is out of storage, so that grade could not be saved. Free some space or save a backup from Settings, then try again.'
+            : `That grade could not be saved: ${e instanceof Error ? e.message : String(e)}`,
+        )
+        setStatus('error')
+      }
     },
     [persistIndex, scheduler],
   )
+
+  const suspend = useCallback(async (key: string) => {
+    await withReopen(async () => {
+      const row = await db.cards.get(key)
+      if (row) await db.cards.put({ ...row, suspended: true })
+    })
+  }, [])
 
   const undo = useCallback(async () => {
     const current = stateRef.current
@@ -252,6 +273,8 @@ export function useStudySession(): StudySession {
     answer,
     grade,
     undo,
+    suspend,
+    ...(state.history.length > 0 ? { lastGraded: state.history.at(-1)!.after } : {}),
     ...(error === undefined ? {} : { error }),
     ...(library ? { library } : {}),
     ...(card ? { card } : {}),

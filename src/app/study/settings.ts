@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 
+import { DEFAULT_REMINDER, type ReminderSettings } from './reminders'
+
 import type { Level } from '@/packs/ja/levels'
 
 export interface Settings {
@@ -17,6 +19,8 @@ export interface Settings {
   kanaReady: boolean
   /** Placement result, kept so Settings can show how the level was chosen. */
   placedAt?: Level
+  /** Local reminder; device-specific, never synced. */
+  reminder: ReminderSettings
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -29,7 +33,10 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'auto',
   jaTextScale: 1,
   kanaReady: true,
+  reminder: DEFAULT_REMINDER,
 }
+
+const SETTINGS_KEYS = new Set<string>([...Object.keys(DEFAULT_SETTINGS), 'placedAt'])
 
 /**
  * Settings live in IndexedDB (so backups and sync carry them) and are mirrored to localStorage
@@ -69,9 +76,11 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     applyTheme(mirrored)
     set({ settings: mirrored, loaded: true })
     const { db, withReopen } = await import('@/db')
+    // The settings table also holds the session in progress and the sync state; only rows
+    // that are real settings may shape the store.
     const rows = await withReopen(() => db.settings.toArray())
     const stored = Object.fromEntries(
-      rows.filter((r) => r.key !== 'session').map((r) => [r.key, r.value]),
+      rows.filter((r) => SETTINGS_KEYS.has(r.key)).map((r) => [r.key, r.value]),
     ) as Partial<Settings>
     if (Object.keys(stored).length === 0) return
     const settings = { ...DEFAULT_SETTINGS, ...stored }

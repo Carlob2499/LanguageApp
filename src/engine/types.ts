@@ -26,6 +26,8 @@ export interface StudyCard {
   lastReview: number | null
   /** When the card was first shown. */
   introducedAt: number | null
+  /** Set aside by the learner (a leech); never queued until cleared. */
+  suspended?: boolean
 }
 
 export interface ReviewRecord {

@@ -2,9 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/app/components/Button'
 import { Icon } from '@/app/components/Icon'
+import { SyncPanel } from '@/app/components/SyncPanel'
 import { Link } from '@/app/router/index'
 import { restoreProgress, saveProgress } from '@/app/study/backup'
+import { askNotificationPermission, notificationsSupported } from '@/app/study/reminders'
 import { useSettings, type Settings } from '@/app/study/settings'
+import {
+  formatBytes,
+  requestPersistentStorage,
+  storageStatus,
+  type StorageStatus,
+} from '@/app/study/storage'
 import { LEVELS } from '@/packs/ja/levels'
 import { loadIndex } from '@/packs/ja/loader'
 
@@ -17,6 +25,32 @@ export function SettingsRoute() {
   const [backupNote, setBackupNote] = useState<string>()
   const [pendingFile, setPendingFile] = useState<File>()
   const fileInput = useRef<HTMLInputElement>(null)
+  const [storage, setStorage] = useState<StorageStatus>()
+  const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>(
+    notificationsSupported() ? Notification.permission : 'unsupported',
+  )
+  // A pairing link from another device puts the key in the fragment: /settings#sync=KEY
+  const [joinKey] = useState(() => {
+    const m = /[#&]sync=([^&]+)/.exec(window.location.hash)
+    if (!m) return undefined
+    window.history.replaceState(null, '', window.location.pathname)
+    return decodeURIComponent(m[1]!)
+  })
+
+  useEffect(() => {
+    void storageStatus().then(setStorage)
+  }, [])
+
+  async function keepData() {
+    await requestPersistentStorage()
+    setStorage(await storageStatus())
+  }
+
+  async function allowNotifications() {
+    const result = await askNotificationPermission()
+    setPermission(result)
+    if (result === 'granted') set('reminder', { ...settings.reminder, enabled: true })
+  }
 
   async function backup() {
     try {
@@ -154,6 +188,77 @@ export function SettingsRoute() {
         </Row>
       </Group>
 
+      <Group title="Sync between devices">
+        <div className={styles.row}>
+          <SyncPanel joinKey={joinKey} />
+        </div>
+      </Group>
+
+      <Group title="Reminder">
+        <Row
+          label="Daily nudge"
+          hint={
+            permission === 'unsupported'
+              ? 'This browser cannot show notifications. The app badge still counts due cards once installed.'
+              : permission === 'denied'
+                ? 'Notifications are blocked for this site in the browser settings.'
+                : 'Fires at this time while Kintsugi is open or installed. There is no server behind it, so nothing arrives when the app has been closed for days.'
+          }
+        >
+          <div className={styles.buttons}>
+            <label className={styles.timeLabel}>
+              <span>Time</span>
+              <input
+                type="time"
+                className={styles.time}
+                value={settings.reminder.time}
+                onChange={(e) =>
+                  set('reminder', { ...settings.reminder, time: e.target.value || '19:00' })
+                }
+              />
+            </label>
+            {permission === 'granted' ? (
+              <Button
+                variant={settings.reminder.enabled ? 'secondary' : 'primary'}
+                aria-pressed={settings.reminder.enabled}
+                onClick={() =>
+                  set('reminder', { ...settings.reminder, enabled: !settings.reminder.enabled })
+                }
+              >
+                {settings.reminder.enabled ? 'Reminder on' : 'Turn on'}
+              </Button>
+            ) : permission === 'default' ? (
+              <Button variant="primary" onClick={() => void allowNotifications()}>
+                Allow notifications
+              </Button>
+            ) : null}
+          </div>
+        </Row>
+      </Group>
+
+      <Group title="Storage">
+        <Row
+          label="Keep my data"
+          hint={
+            storage?.persisted
+              ? "The browser has agreed to keep this site's data."
+              : "Ask the browser never to clear this site's data when space runs low. Installing the app does this too."
+          }
+        >
+          <div className={styles.buttons}>
+            {storage && !storage.persisted && (
+              <Button onClick={() => void keepData()}>Keep my data</Button>
+            )}
+            {storage?.usageBytes !== null && storage?.usageBytes !== undefined && (
+              <span className={styles.note}>
+                Using {formatBytes(storage.usageBytes)}
+                {storage.quotaBytes ? ` of ${formatBytes(storage.quotaBytes)} available` : ''}
+              </span>
+            )}
+          </div>
+        </Row>
+      </Group>
+
       <Group title="Kana">
         <Row
           label="Kana first"
@@ -190,7 +295,8 @@ export function SettingsRoute() {
           <Icon name="chevron" size={18} className={styles.linkChevron} />
         </Link>
         <p className={styles.note}>
-          JLPT levels in this app are unofficial. Progress stays on this device until sync arrives.
+          JLPT levels in this app are unofficial. Progress stays on this device unless you turn on
+          sync.
         </p>
       </Group>
     </section>

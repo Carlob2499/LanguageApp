@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/app/components/Button'
 import { useNavigate } from '@/app/router/index'
 import { useSettings } from '@/app/study/settings'
+import { requestPersistentStorage } from '@/app/study/storage'
 import { LEVELS, type Level } from '@/packs/ja/levels'
 import { strokesFor } from '@/packs/ja/loader'
 import type { StrokeItem } from '@/packs/ja/types'
@@ -42,11 +43,13 @@ export function WelcomeRoute() {
 
   async function finish() {
     await update({ onboarded: true, level, newPerDay, kanaReady: true })
+    void requestPersistentStorage()
     navigate('/')
   }
 
   async function finishKanaFirst() {
     await update({ onboarded: true, level: 'N5', newPerDay: 10, kanaReady: false })
+    void requestPersistentStorage()
     navigate('/')
   }
 

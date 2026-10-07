@@ -5,13 +5,14 @@ import { Choices, type Choice } from '@/app/components/Choices'
 import { Crack } from '@/app/components/Crack'
 import { Furigana } from '@/app/components/Furigana'
 import { GoldFlecks } from '@/app/components/GoldFlecks'
+import { useSync } from '@/app/sync/store'
 import { Icon } from '@/app/components/Icon'
 import { Sheet } from '@/app/components/Sheet'
 import { Speak } from '@/app/components/Speak'
 import { StrokeGlyph } from '@/app/components/StrokeGlyph'
 import { Tile } from '@/app/components/Tile'
 import { Vessel } from '@/app/components/Vessel'
-import { useNavigate } from '@/app/router/index'
+import { Link, useNavigate } from '@/app/router/index'
 import { useStudySession } from '@/app/study/useStudySession'
 import { GRADE_LABELS } from '@/engine/session'
 import type { Grade, StudyCard } from '@/engine/types'
@@ -30,10 +31,35 @@ const GRADE_ICON: Record<Grade, 'crack' | 'chevron' | 'check' | 'spark'> = {
   4: 'spark',
 }
 
+/** Lapses after which a card counts as a leech (Anki's long-standing default). */
+const LEECH_LAPSES = 8
+
 export function ReviewRoute() {
   const session = useStudySession()
   const navigate = useNavigate()
   const [cracking, setCracking] = useState(false)
+  const [leech, setLeech] = useState<{ key: string; itemId: string; lapses: number }>()
+  const leechShown = useRef(new Set<string>())
+  const synced = useRef(false)
+
+  // After each session, hand the snapshot to sync if it is switched on (rate-limited there).
+  useEffect(() => {
+    if (!session.complete || synced.current) return
+    synced.current = true
+    void useSync
+      .getState()
+      .load()
+      .then(() => useSync.getState().sync('session'))
+  }, [session.complete])
+
+  // A card that keeps cracking is a leech: offer to set it aside or write a memory aid.
+  const last = session.lastGraded
+  useEffect(() => {
+    if (!last || last.lapses < LEECH_LAPSES || last.suspended) return
+    if (leechShown.current.has(last.key)) return
+    leechShown.current.add(last.key)
+    setLeech({ key: last.key, itemId: last.itemId, lapses: last.lapses })
+  }, [last])
 
   /** Again cracks the tile for a beat before the card moves on. */
   function gradeWithCrack(g: Grade) {
@@ -157,6 +183,35 @@ export function ReviewRoute() {
           <Icon name="undo" />
         </button>
       </header>
+      {leech && (
+        <div className={styles.leech} role="status" aria-live="polite">
+          <p className={styles.leechText}>
+            This one has cracked {leech.lapses} times. A memory aid helps more than another repeat.
+          </p>
+          <div className={styles.leechButtons}>
+            {leech.itemId.startsWith('k:') && (
+              <Link
+                to={`/kanji/${encodeURIComponent(leech.itemId.slice(2))}`}
+                className={styles.leechLink}
+              >
+                Write a memory aid
+              </Link>
+            )}
+            <Button
+              variant="quiet"
+              onClick={() => {
+                void session.suspend(leech.key)
+                setLeech(undefined)
+              }}
+            >
+              Set it aside
+            </Button>
+            <Button variant="quiet" onClick={() => setLeech(undefined)}>
+              Keep going
+            </Button>
+          </div>
+        </div>
+      )}
 
       {item &&
       (card.cardType === JA_CARD_TYPES.kanaRecognition ||

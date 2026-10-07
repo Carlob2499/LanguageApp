@@ -10,7 +10,7 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - [x] M3 Learning engine (2026-10-06)
 - [x] M4 Kanji study depth (2026-10-06)
 - [x] M5 Desktop (2026-10-06)
-- [ ] M6 PWA hardening and sync
+- [x] M6 PWA hardening and sync (2026-10-06)
 - [ ] M7 Verify, review, hand off
 
 ## Log
@@ -81,6 +81,16 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - Kanji page: `S` / `T` / `A` switch Strokes, Trace, Assemble (keys printed on the segmented control for pointer devices), `R` replays. On its own page at ≥ 1100 px it is two columns: study on the left, words and sentences on the right.
 - Scene: a RoomEnvironment PMREM gives the clearcoat lacquer real reflections; hovering a piece warms it with a gold sheen and a pointer cursor before a click commits.
 - Tests: 27 e2e (desktop suite covers palette search, commands and theme switch, shortcut sheet, split view keys, kanji mode keys, axe with the palette open and on the split view). Screenshots: reports/screenshots/m4/desktop-\*.png.
+
+### 2026-10-06 — M6 PWA hardening and sync
+
+- Update flow: the service worker keeps `skipWaiting` behind a message; the shell shows "A new version is ready" with Restart / Later only when `updateOfferAllowed` says so (never on /review or /placement), so an update cannot interrupt a session. Unit-tested rule.
+- Storage: `navigator.storage.persist()` is requested when onboarding finishes; Settings → Storage shows usage, quota and whether the browser agreed, with a "Keep my data" button. A grade that fails on a full disk is reported in plain words instead of a stuck session (`isQuotaError`).
+- Reminders and badge (`Pulse`, lazy so Dexie stays out of the entry): a daily time in Settings, Notification permission asked only on tap, one timer armed while the app is open, and the app badge mirrors due reviews where the Badging API exists. Copy says plainly that there is no server behind it.
+- Sync (`src/app/sync`, `api/sync.ts`): a 128-bit key shown as 26 Crockford base32 characters and as a QR code (pairing URL with the key in the fragment, which never reaches a server). HKDF derives an AES-256-GCM key and a 32-hex blob id; the Vercel function stores one private blob per id with If-Match versions (409 on a race) and answers 503 when `BLOB_READ_WRITE_TOKEN` is missing, which the UI reports as "not switched on for this deployment". Snapshots merge rather than overwrite: cards keep whichever device studied them last, review logs are unioned, day counters take the larger value, notes keep the latest edit, device settings stay local. Syncs on demand and after each session, at most 60 uploads a day, 90 s apart. Encrypted payload verified opaque in e2e.
+- Leeches: a card that lapses 8 times gets a notice in the review with "Write a memory aid", "Set it aside" (suspended cards leave every queue) or "Keep going".
+- Tests: 72 unit (crypto round trip and wrong-key rejection, merge rules, reminder timing, update policy, CSP hashes), 35 e2e (two-device sync round trip against a fake Blob store with If-Match, unconfigured deployment, the production CSP applied to the preview with zero violations across onboarding, a review and tracing, and an offline session after the worker installs). CI was green from run 8 (M5).
+- Deferred: pairing by camera scan (the QR opens the pairing link in the phone's camera app instead), reminder delivery while the app is closed (needs a push server, out of scope by decision), FSRS seeding from placement.
 
 ## Spot-checks
 
