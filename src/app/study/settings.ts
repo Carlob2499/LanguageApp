@@ -27,6 +27,8 @@ export interface Settings {
   sound: boolean
   /** Gentle keeps the gold and drops flashes, wipes and sharp sounds. This device only. */
   motion: 'full' | 'gentle'
+  /** How typed answers are entered: romaji shows live kana as you type. This device only. */
+  typing: 'romaji' | 'kana'
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -43,6 +45,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoAudio: true,
   sound: true,
   motion: 'full',
+  typing: 'romaji',
 }
 
 const SETTINGS_KEYS = new Set<string>([...Object.keys(DEFAULT_SETTINGS), 'placedAt'])

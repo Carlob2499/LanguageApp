@@ -25,7 +25,7 @@ import { GRADE_LABELS } from '@/engine/session'
 import type { TracingState } from '@/engine/tracing'
 import type { Grade, StudyCard } from '@/engine/types'
 import { displayForm, JA_CARD_TYPES, primaryGloss, readingsFor } from '@/packs/ja/cards'
-import { checkReading, checkSpoken } from '@/packs/ja/grading'
+import { checkReading, checkSpoken, previewKana, romajiFor } from '@/packs/ja/grading'
 import { sentencesFor, strokesFor } from '@/packs/ja/loader'
 import type { Level } from '@/packs/ja/levels'
 import type { KanaItem, KanjiItem, SentenceItem, StrokeItem, VocabItem } from '@/packs/ja/types'
@@ -526,11 +526,18 @@ function WordAnswer({
   showReading: boolean
   onMore: () => void
 }) {
+  const typing = useSettings((s) => s.settings.typing)
   return (
     <div className={styles.answerBody}>
       {showReading && reading && (
         <p className={styles.reading} lang="ja">
           {readingsFor(word, form).join('、')}
+          {typing === 'romaji' && (
+            <span className={styles.romaji} lang="en">
+              {' · '}
+              {romajiFor(readingsFor(word, form)[0] ?? '')}
+            </span>
+          )}
         </p>
       )}
       <p className={styles.meaning}>{primaryGloss(word)}</p>
@@ -598,6 +605,7 @@ function ReadingInput({ item, session }: { item: VocabItem; session: Session }) 
   const [value, setValue] = useState('')
   const [listening, setListening] = useState(false)
   const [heard, setHeard] = useState<string>()
+  const typing = useSettings((s) => s.settings.typing)
   const inputRef = useRef<HTMLInputElement>(null)
   const accepted = readingsFor(item, displayForm(item))
   const [canSpeak] = useState(recognitionSupported)
@@ -640,24 +648,42 @@ function ReadingInput({ item, session }: { item: VocabItem; session: Session }) 
       <label className="visually-hidden" htmlFor="reading-input">
         Type the reading in kana or romaji
       </label>
+      <div className={styles.typing} role="group" aria-label="Typing mode">
+        {(['romaji', 'kana'] as const).map((m) => (
+          <button
+            key={m}
+            type="button"
+            className={styles.typingOption}
+            aria-pressed={typing === m}
+            onClick={() => void useSettings.getState().update({ typing: m })}
+          >
+            {m === 'romaji' ? 'Romaji' : 'Kana'}
+          </button>
+        ))}
+      </div>
       <input
         id="reading-input"
         ref={inputRef}
         className={styles.input}
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Type the reading"
+        placeholder={typing === 'romaji' ? 'Type in romaji, e.g. gakkou' : 'Type in kana'}
         autoComplete="off"
         autoCapitalize="off"
         autoCorrect="off"
         spellCheck={false}
         enterKeyHint="done"
-        lang="ja"
+        lang={typing === 'romaji' ? 'en' : 'ja'}
         inputMode="text"
       />
       <Button variant="primary" type="submit">
         Check
       </Button>
+      {typing === 'romaji' && (
+        <p className={styles.preview} lang="ja" aria-live="polite">
+          {value.trim() ? previewKana(value) : '\u00a0'}
+        </p>
+      )}
       {canSpeak && (
         <Button
           variant="quiet"

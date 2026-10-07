@@ -1,4 +1,4 @@
-import { isKana, toHiragana } from 'wanakana'
+import { isKana, toHiragana, toKana, toRomaji } from 'wanakana'
 
 /** Normalises a typed answer (romaji or kana) to hiragana with no spaces or punctuation. */
 export function normaliseReading(input: string): string {
@@ -21,6 +21,16 @@ export function checkReading(answer: string, accepted: string[]): ReadingCheck {
     if (toHiragana(reading) === given) return { correct: true, matched: reading }
   }
   return { correct: false }
+}
+
+/** Live kana for a half-typed romaji answer: a trailing lone "n" waits for the next letter. */
+export function previewKana(input: string): string {
+  return toKana(input.trim().toLowerCase(), { IMEMode: true })
+}
+
+/** Hepburn romaji for a reading, shown beside kana for learners who type on a Latin keyboard. */
+export function romajiFor(reading: string): string {
+  return toRomaji(reading)
 }
 
 export function looksLikeKana(input: string): boolean {

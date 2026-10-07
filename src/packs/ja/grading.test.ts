@@ -28,3 +28,16 @@ describe('checkSpoken', () => {
     expect(checkSpoken([], ['えき'], ['駅']).correct).toBe(false)
   })
 })
+
+import { previewKana, romajiFor } from './grading'
+
+describe('romaji typing helpers', () => {
+  it('turns romaji into kana as it is typed', () => {
+    expect(previewKana('gakkou')).toBe('がっこう')
+    expect(previewKana('Sensei')).toBe('せんせい')
+    expect(previewKana('kan')).toBe('かn')
+  })
+  it('writes a reading back as romaji', () => {
+    expect(romajiFor('がっこう')).toBe('gakkou')
+  })
+})

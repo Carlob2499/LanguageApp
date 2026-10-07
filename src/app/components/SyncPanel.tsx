@@ -34,7 +34,7 @@ export function SyncPanel({ joinKey }: { joinKey?: string | undefined }) {
         mod.toDataURL(pairingUrl(state.key), {
           margin: 1,
           width: 192,
-          color: { dark: '#1c0d0b', light: '#f6f1e7' },
+          color: { dark: '#0c1018', light: '#f3f1ea' },
         }),
       )
       .then((url) => {

@@ -28,13 +28,7 @@ html[data-theme='light'] .canvas {
 }
 
 .vignette {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(120% 100% at 50% 40%, transparent 55%, rgb(0 0 0 / 0.45) 100%);
-}
-
-html[data-theme='light'] .vignette {
-  background: radial-gradient(120% 100% at 50% 40%, transparent 60%, rgb(28 13 11 / 0.12) 100%);
+  display: none;
 }
 
 @media (prefers-reduced-transparency: reduce) {

@@ -1,21 +1,40 @@
 .welcome {
   display: grid;
   gap: var(--sp-4);
-  justify-items: start;
+  justify-items: stretch;
   align-content: center;
   min-height: calc(100dvh - 8rem);
-  max-width: 34rem;
+  width: 100%;
+  max-width: 30rem;
+  margin-inline: auto;
   padding-block: var(--sp-5);
+}
+
+/* First screen: one centred column, so the glyph, the three states, the words and the button
+   share a single axis. The later steps below stay left-aligned inside the same column. */
+.intro {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-4);
+  text-align: center;
+}
+
+.intro h1,
+.intro .lede {
+  text-wrap: balance;
+}
+
+.intro .lede {
+  max-width: 26rem;
 }
 
 .hero {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: var(--sp-4);
+  justify-items: center;
+  align-content: start;
+  gap: var(--sp-5);
   width: 100%;
-  min-height: 11.5rem;
-  margin-bottom: var(--sp-2);
+  min-height: 19rem;
   opacity: 0;
   transition: opacity 500ms ease-out;
 }
@@ -27,9 +46,7 @@
 .glyphWrap {
   position: relative;
   isolation: isolate;
-  position: relative;
-  width: 100%;
-  max-width: 11rem;
+  width: 9rem;
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -41,97 +58,85 @@
 }
 
 .glyphText {
-  font-size: 8rem;
+  font-size: 7.5rem;
   color: var(--accent-text, var(--k-gold));
   font-weight: 700;
   line-height: 1;
 }
 
 .journeyWrap {
-  display: grid;
-  gap: var(--sp-2);
-  justify-items: center;
+  width: 100%;
 }
 
 .journey {
   list-style: none;
   margin: 0;
   padding: 0;
-  position: relative;
-  height: 9.5rem;
-  width: 13rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+  max-width: 21rem;
+  margin-inline: auto;
 }
 
-.journeyCaption {
+.step {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-2);
+  animation: rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.step:nth-child(2) {
+  animation-delay: 140ms;
+}
+
+.step:nth-child(3) {
+  animation-delay: 280ms;
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(0.75rem);
+    opacity: 0;
+  }
+}
+
+.stepLabel {
   font-size: var(--fs-caption);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--fg-faint);
+  font-weight: 600;
 }
 
 .tile {
-  position: absolute;
-  inset: 1.5rem auto auto 0;
-  width: 5.5rem;
-  height: 7rem;
+  position: relative;
+  width: 100%;
+  max-width: 5.5rem;
+  aspect-ratio: 4 / 5;
   display: grid;
   place-items: center;
-  padding: var(--sp-3);
   border-radius: var(--radius-m);
-  background: linear-gradient(170deg, #35191a, var(--bg-raised) 45%, #1f0e0c);
-  border: 1px solid rgb(243 237 227 / 0.08);
-  box-shadow: 0 18px 30px -18px rgb(0 0 0 / 0.9);
+  background: var(--bg-raised);
+  border: 1px solid var(--hairline);
   overflow: hidden;
-  animation: fan 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
-.tile:nth-child(1) {
-  --fan-x: 0rem;
-  --fan-r: -10deg;
-  animation-delay: 150ms;
-}
-
-.tile:nth-child(2) {
-  --fan-x: 3.6rem;
-  --fan-r: 0deg;
-  animation-delay: 300ms;
-}
-
-.tile:nth-child(3) {
-  --fan-x: 7.2rem;
-  --fan-r: 10deg;
-  animation-delay: 450ms;
-}
-
-@keyframes fan {
-  from {
-    transform: translate(0, 1rem) rotate(0deg);
-    opacity: 0;
-  }
-  to {
-    transform: translate(var(--fan-x), calc(var(--fan-x) * -0.18)) rotate(var(--fan-r));
-    opacity: 1;
-  }
 }
 
 .tileGold {
-  border-color: rgb(217 164 65 / 0.4);
+  border-color: rgb(217 164 65 / 0.5);
 }
 
 .tileKanji {
   position: relative;
   font-family: var(--font-ja-display);
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   line-height: 1;
   font-weight: 700;
 }
 
-.tileLabel {
-  position: relative;
-  font-size: 0.6875rem;
-  color: var(--fg-muted);
-  text-align: center;
-  letter-spacing: 0.02em;
+.cta {
+  width: 100%;
+  max-width: 20rem;
 }
 
 .eyebrow {
@@ -196,15 +201,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tile {
+  .step {
     animation: none;
-    transform: translate(var(--fan-x), calc(var(--fan-x) * -0.18)) rotate(var(--fan-r));
-  }
-}
-
-@media (max-width: 380px) {
-  .hero {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -223,10 +221,4 @@
   flex-wrap: wrap;
   gap: var(--sp-3);
   min-height: 3.5rem;
-}
-
-html[data-theme='light'] .tile {
-  background: linear-gradient(170deg, #fffaf1, var(--bg-raised) 45%, #efe6d8);
-  border-color: rgb(28 13 11 / 0.1);
-  box-shadow: 0 18px 30px -20px rgb(28 13 11 / 0.35);
 }

@@ -79,7 +79,7 @@
   gap: var(--sp-1);
   padding: var(--sp-3) var(--sp-2);
   border-radius: var(--radius-m);
-  background: linear-gradient(170deg, #31171a, var(--bg-raised) 50%, #1f0e0c);
+  background: var(--bg-raised);
   border: 1px solid rgb(243 237 227 / 0.07);
   box-shadow: 0 14px 24px -18px rgb(0 0 0 / 0.9);
   text-align: center;
@@ -92,7 +92,7 @@
 }
 
 html[data-theme='light'] .cell {
-  background: linear-gradient(170deg, #fffaf1, var(--bg-raised) 50%, #efe6d8);
+  background: var(--bg-raised);
 }
 
 .cell:active {

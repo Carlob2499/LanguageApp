@@ -21,6 +21,7 @@ const DEVICE_SETTINGS = new Set([
   'autoAudio',
   'sound',
   'motion',
+  'typing',
 ])
 
 function newerCard(a: StudyCard, b: StudyCard): StudyCard {

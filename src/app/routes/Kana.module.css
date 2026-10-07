@@ -37,7 +37,7 @@
   min-height: 3.25rem;
   padding: 0 var(--sp-5);
   border-radius: var(--radius-l);
-  background: linear-gradient(160deg, #f0c56b, var(--k-gold) 55%, var(--k-gold-dim));
+  background: var(--k-gold);
   color: var(--k-lacquer);
   font-weight: 600;
   text-decoration: none;
@@ -75,12 +75,12 @@
   align-items: center;
   padding: var(--sp-4);
   border-radius: var(--radius-l);
-  background: linear-gradient(170deg, #35191a, var(--bg-raised) 45%, #1f0e0c);
+  background: var(--bg-raised);
   border: 1px solid rgb(243 237 227 / 0.08);
 }
 
 html[data-theme='light'] .focus {
-  background: linear-gradient(170deg, #fffaf1, var(--bg-raised) 45%, #efe6d8);
+  background: var(--bg-raised);
 }
 
 .focusGlyph {

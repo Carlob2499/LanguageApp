@@ -22,7 +22,7 @@ html[data-theme='light'] .line,
 html[data-theme='light'] .lineDrawing,
 html[data-theme='light'] .branch,
 html[data-theme='light'] .branchDrawing {
-  stroke: rgb(28 13 11 / 0.45);
+  stroke: rgb(14 19 32 / 0.45);
 }
 
 .lineDrawing {

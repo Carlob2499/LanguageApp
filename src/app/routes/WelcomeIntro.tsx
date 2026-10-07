@@ -30,7 +30,7 @@ export function WelcomeIntro({
   inert = false,
 }: WelcomeIntroProps) {
   return (
-    <>
+    <div className={styles.intro}>
       <div className={styles.hero} data-ready={showHero ? 'true' : undefined}>
         {showHero && (
           <>
@@ -54,27 +54,33 @@ export function WelcomeIntro({
                 className={styles.journey}
                 aria-label="A card you know, the same card after a miss with a crack across it, and once you recall it with the crack filled in gold"
               >
-                <li className={styles.tile} aria-hidden="true">
-                  <span className={styles.tileKanji} lang="ja">
-                    日
+                <li className={styles.step} aria-hidden="true">
+                  <span className={styles.tile}>
+                    <span className={styles.tileKanji} lang="ja">
+                      日
+                    </span>
                   </span>
+                  <span className={styles.stepLabel}>Learned</span>
                 </li>
-                <li className={`${styles.tile} ${styles.tileCracked}`} aria-hidden="true">
-                  <Crack seed="welcome" gold={0} />
-                  <span className={styles.tileKanji} lang="ja">
-                    日
+                <li className={styles.step} aria-hidden="true">
+                  <span className={styles.tile}>
+                    <Crack seed="welcome" gold={0} />
+                    <span className={styles.tileKanji} lang="ja">
+                      日
+                    </span>
                   </span>
+                  <span className={styles.stepLabel}>Missed</span>
                 </li>
-                <li className={`${styles.tile} ${styles.tileGold}`} aria-hidden="true">
-                  <Crack seed="welcome" gold={1} />
-                  <span className={styles.tileKanji} lang="ja">
-                    日
+                <li className={styles.step} aria-hidden="true">
+                  <span className={`${styles.tile} ${styles.tileGold}`}>
+                    <Crack seed="welcome" gold={1} />
+                    <span className={styles.tileKanji} lang="ja">
+                      日
+                    </span>
                   </span>
+                  <span className={styles.stepLabel}>Mended</span>
                 </li>
               </ol>
-              <p className={styles.journeyCaption} aria-hidden="true">
-                Learned · Missed · Mended
-              </p>
             </div>
           </>
         )}
@@ -88,11 +94,12 @@ export function WelcomeIntro({
       <Button
         variant="primary"
         size="large"
+        className={styles.cta}
         onClick={onStart}
         aria-disabled={inert ? 'true' : undefined}
       >
         Start
       </Button>
-    </>
+    </div>
   )
 }

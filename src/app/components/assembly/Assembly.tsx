@@ -20,8 +20,8 @@ function easeOut(t: number): number {
   return 1 - Math.pow(1 - t, 3)
 }
 
-const LACQUER = new Color('#3a1a14')
-const LACQUER_LIGHT = new Color('#5a2a20')
+const LACQUER = new Color('#1e2639')
+const LACQUER_LIGHT = new Color('#33425f')
 const GOLD = new Color('#d9a441')
 
 interface Materials {

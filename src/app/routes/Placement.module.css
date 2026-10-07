@@ -37,14 +37,14 @@
   justify-items: center;
   padding: var(--sp-6) var(--sp-4);
   border-radius: var(--radius-l);
-  background: linear-gradient(170deg, #35191a, var(--bg-raised) 40%, #1f0e0c);
+  background: var(--bg-raised);
   border: 1px solid rgb(243 237 227 / 0.08);
   box-shadow: 0 24px 48px -28px rgb(0 0 0 / 0.9);
   animation: rise 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 html[data-theme='light'] .card {
-  background: linear-gradient(170deg, #fffaf1, var(--bg-raised) 40%, #efe6d8);
+  background: var(--bg-raised);
 }
 
 @keyframes rise {

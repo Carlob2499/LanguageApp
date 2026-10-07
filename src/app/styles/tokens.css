@@ -2,13 +2,13 @@
 :root {
   color-scheme: dark light;
 
-  /* Lacquer (dark) */
-  --k-lacquer: #1c0d0b;
-  --k-lacquer-raised: #2a1512;
-  --k-lacquer-sunken: #140908;
-  --k-bone: #f3ede3;
-  --k-bone-muted: #c9bfb2;
-  --k-bone-faint: #a69b8e;
+  /* Ink (dark): indigo-black, a flat ground with no gradient */
+  --k-lacquer: #0c1018;
+  --k-lacquer-raised: #151b27;
+  --k-lacquer-sunken: #090c12;
+  --k-bone: #eeece6;
+  --k-bone-muted: #b4b9c6;
+  --k-bone-faint: #8f97a8;
   --k-gold: #d9a441;
   --k-gold-dim: #b8892f;
   --k-celadon: #7fb3a3;
@@ -16,13 +16,13 @@
   --k-shu-text: #f06a5c;
   --k-bengara: #9a2f1e;
 
-  /* Paper (light) */
-  --k-paper: #f6f1e7;
-  --k-paper-raised: #fffaf1;
-  --k-paper-sunken: #ebe3d6;
-  --k-ink: #1c0d0b;
-  --k-ink-muted: #5a4a44;
-  --k-ink-faint: #6a5b55;
+  /* Paper (light): cool washi, flat */
+  --k-paper: #f3f1ea;
+  --k-paper-raised: #ffffff;
+  --k-paper-sunken: #e7e4da;
+  --k-ink: #0e1320;
+  --k-ink-muted: #4a5167;
+  --k-ink-faint: #5d647a;
   --k-shu-ink: #b5301f;
   --k-celadon-ink: #2c6655;
 
@@ -45,7 +45,7 @@
   --surface-accent: var(--k-bengara);
   --surface-accent-fg: var(--k-bone);
   --hairline: rgb(243 237 227 / 0.12);
-  --glass: rgb(42 21 18 / 0.72);
+  --glass: rgb(21 27 39 / 0.78);
   --focus: var(--k-gold);
 
   /* Type */
@@ -116,8 +116,8 @@ html[data-theme='light'],
     --danger-text: var(--k-shu-ink);
     --surface-accent: var(--k-bengara);
     --surface-accent-fg: var(--k-bone);
-    --hairline: rgb(28 13 11 / 0.14);
-    --glass: rgb(255 250 241 / 0.78);
+    --hairline: rgb(14 19 32 / 0.14);
+    --glass: rgb(255 255 255 / 0.8);
     --focus: var(--k-bengara);
   }
 }
@@ -140,8 +140,8 @@ html[data-theme='light'] {
   --danger-text: var(--k-shu-ink);
   --surface-accent: var(--k-bengara);
   --surface-accent-fg: var(--k-bone);
-  --hairline: rgb(28 13 11 / 0.14);
-  --glass: rgb(255 250 241 / 0.78);
+  --hairline: rgb(14 19 32 / 0.14);
+  --glass: rgb(255 255 255 / 0.8);
   --focus: var(--k-bengara);
 }
 

@@ -6,8 +6,8 @@ import { reducedMotion } from './tier'
 
 import styles from './Mended.module.css'
 
-const COLS = 6
-const ROWS = 4
+const COLS = 5
+const ROWS = 3
 const DURATION = 3.4
 
 interface Shard {
@@ -119,9 +119,9 @@ export default function Mended({ label }: { label: string }) {
         q.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)))
         ctx.closePath()
         const shade = ctx.createLinearGradient(-1, 0, 1, 1.3)
-        shade.addColorStop(0, '#4a2620')
-        shade.addColorStop(0.5, '#2a1512')
-        shade.addColorStop(1, '#12090a')
+        shade.addColorStop(0, '#2c3850')
+        shade.addColorStop(0.5, '#1a2133')
+        shade.addColorStop(1, '#0c1018')
         ctx.fillStyle = shade
         ctx.fill()
         ctx.lineWidth = 0.012
@@ -150,11 +150,11 @@ export default function Mended({ label }: { label: string }) {
           ctx.shadowColor = '#d9a441'
           ctx.shadowBlur = 10 * s * 0.02
           ctx.strokeStyle = '#d9a441'
-          ctx.lineWidth = 0.034
+          ctx.lineWidth = 0.026
           ctx.stroke()
           ctx.shadowBlur = 0
           ctx.strokeStyle = '#f0c56b'
-          ctx.lineWidth = 0.012
+          ctx.lineWidth = 0.009
           ctx.stroke()
         }
         let n = 0
@@ -168,12 +168,16 @@ export default function Mended({ label }: { label: string }) {
         ctx.save()
         ctx.translate(ox, oy)
         ctx.scale(s, s)
-        ctx.globalAlpha = seg(t, 2.6, 3.2)
-        ctx.strokeStyle = '#f0c56b'
-        ctx.lineWidth = 0.02
+        // The rim: a dark opening with a gold lip that catches the light last.
+        const rim = seg(t, 1.9, 2.5)
+        ctx.globalAlpha = rim
+        ctx.fillStyle = '#070a10'
         ctx.beginPath()
-        ctx.moveTo(-1.1, 0)
-        ctx.lineTo(1.1, 0)
+        ctx.ellipse(0, 0, 1.1, 0.13, 0, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.globalAlpha = rim * (0.35 + 0.65 * seg(t, 2.6, 3.2))
+        ctx.strokeStyle = '#f0c56b'
+        ctx.lineWidth = 0.022
         ctx.stroke()
         ctx.restore()
       }

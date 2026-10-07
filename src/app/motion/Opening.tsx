@@ -48,6 +48,10 @@ export default function Opening({ onDone }: { onDone: () => void }) {
       s: 0.2 + rnd() * 0.6,
     }))
 
+    // The title is canvas text: ask for its faces now so they are ready when it appears.
+    void document.fonts?.load('700 100px "Shippori Mincho"', '金継ぎ').catch(() => undefined)
+    void document.fonts?.load('700 14px "M PLUS 2"', 'KINTSUGI').catch(() => undefined)
+
     const cues = [
       { at: 0.5, fn: () => cue('koto', 0) },
       { at: 1.45, fn: () => cue('koto', 2) },
@@ -74,10 +78,7 @@ export default function Opening({ onDone }: { onDone: () => void }) {
       if (t >= DURATION) return finish()
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, w, h)
-      const g = ctx.createRadialGradient(w / 2, h * 0.45, 0, w / 2, h * 0.45, Math.max(w, h) * 0.75)
-      g.addColorStop(0, '#2a1512')
-      g.addColorStop(1, '#0b0504')
-      ctx.fillStyle = g
+      ctx.fillStyle = '#080b11'
       ctx.fillRect(0, 0, w, h)
 
       // Gold dust drifting up, barely there.
@@ -165,7 +166,7 @@ export default function Opening({ onDone }: { onDone: () => void }) {
   }, [onDone])
 
   return (
-    <div ref={root} className={styles.root} aria-hidden="true">
+    <div ref={root} className={styles.root} data-opening="" aria-hidden="true">
       <canvas ref={canvas} className={styles.canvas} />
     </div>
   )

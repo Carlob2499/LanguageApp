@@ -8,7 +8,7 @@ import styles from './Stage.module.css'
 
 const GOLD = '#d9a441'
 const GOLD_LIGHT = '#f0c56b'
-const LACQUER = '#1c0d0b'
+const LACQUER = '#0c1018'
 const SHU = '#e34234'
 
 interface Live {

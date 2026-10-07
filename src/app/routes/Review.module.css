@@ -437,3 +437,42 @@
   color: var(--fg-faint);
   font-size: var(--fs-small);
 }
+
+.typing {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  justify-self: start;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+}
+
+.typingOption {
+  min-height: 2rem;
+  padding: 0 var(--sp-3);
+  border-radius: 999px;
+  border: 0;
+  background: none;
+  color: var(--fg-muted);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.typingOption[aria-pressed='true'] {
+  background: var(--k-gold);
+  color: var(--accent-fg);
+}
+
+.preview {
+  grid-column: 1 / -1;
+  min-height: 1.75em;
+  color: var(--accent-text, var(--k-gold));
+  font-size: calc(var(--fs-subhead) * var(--ja-scale, 1));
+}
+
+.romaji {
+  color: var(--fg-muted);
+  font-size: var(--fs-small);
+}

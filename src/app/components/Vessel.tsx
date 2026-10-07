@@ -47,8 +47,8 @@ export function Vessel({
           <stop offset="1" stopColor="#b8892f" />
         </linearGradient>
         <linearGradient id={`${id}-body`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#3a1a18" />
-          <stop offset="1" stopColor="#1c0d0b" />
+          <stop offset="0" stopColor="#232c40" />
+          <stop offset="1" stopColor="#0c1018" />
         </linearGradient>
       </defs>
       <path

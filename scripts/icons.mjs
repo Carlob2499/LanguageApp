@@ -21,7 +21,7 @@ for (const [name, size, padded] of sizes) {
   const inner = padded ? Math.round(size * 0.8) : size
   const offset = Math.round((size - inner) / 2)
   await page.setContent(
-    `<html><body style="margin:0;background:${padded ? '#1C0D0B' : 'transparent'};width:${size}px;height:${size}px">
+    `<html><body style="margin:0;background:${padded ? '#0C1018' : 'transparent'};width:${size}px;height:${size}px">
       <div style="position:absolute;left:${offset}px;top:${offset}px;width:${inner}px;height:${inner}px">${svg}</div>
     </body></html>`,
   )

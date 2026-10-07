@@ -147,6 +147,19 @@ export function SettingsRoute() {
           />
         </Row>
         <Row
+          label="Typing answers"
+          hint="Romaji turns what you type into kana as you go, so a normal keyboard is enough. Choose Kana if you type with a Japanese keyboard."
+        >
+          <Segmented
+            options={[
+              { value: 'romaji' as const, label: 'Romaji' },
+              { value: 'kana' as const, label: 'Kana' },
+            ]}
+            value={settings.typing}
+            onChange={(v) => set('typing', v)}
+          />
+        </Row>
+        <Row
           label="Sound"
           hint="Koto, taiko and bell tones made on this device as you study. Your phone's silent switch still wins."
         >

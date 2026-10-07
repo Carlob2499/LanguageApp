@@ -53,13 +53,13 @@
   place-items: center;
   padding: var(--sp-3);
   border-radius: var(--radius-l);
-  background: linear-gradient(170deg, #35191a, var(--bg-raised) 45%, #1f0e0c);
+  background: var(--bg-raised);
   border: 1px solid rgb(243 237 227 / 0.08);
   box-shadow: 0 24px 48px -28px rgb(0 0 0 / 0.9);
 }
 
 html[data-theme='light'] .heroGlyph {
-  background: linear-gradient(170deg, #fffaf1, var(--bg-raised) 45%, #efe6d8);
+  background: var(--bg-raised);
 }
 
 .heroText {

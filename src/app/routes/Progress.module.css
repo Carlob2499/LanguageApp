@@ -218,8 +218,8 @@
 
 .tileK[data-state='repaired'] {
   opacity: 1;
-  color: var(--lacquer-on-gold, #1c0d0b);
-  background: linear-gradient(160deg, #f0c56b, var(--k-gold) 55%, var(--k-gold-dim));
+  color: var(--lacquer-on-gold, #0c1018);
+  background: var(--k-gold);
   border-color: transparent;
   box-shadow: 0 6px 14px -8px rgb(217 164 65 / 0.8);
 }
@@ -231,7 +231,7 @@
 }
 
 html[data-theme='light'] .shelf {
-  --shelf-shadow: rgb(28 13 11 / 0.06);
+  --shelf-shadow: rgb(14 19 32 / 0.06);
 }
 
 @media (min-width: 900px) {

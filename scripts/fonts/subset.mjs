@@ -110,7 +110,7 @@ const BASE_TEXT =
   range(0x30a0, 0x30ff) + // katakana
   range(0xff01, 0xff5e) +
   range(0xff61, 0xff9f) + // fullwidth / halfwidth forms
-  '—…‘’“”·–×※○●→←々〜～'
+  '—…‘’“”·–×※○●→←々〜～金継' // 金継ぎ is the opening title, drawn on a canvas before any level slice loads
 
 function levelTexts() {
   const seen = new Set([...BASE_TEXT])
