@@ -180,3 +180,11 @@ Two independent reviews ran against PLAN.md and the Definition of done (one on c
 - ok sentence 205978 そよ風で池の面にさざ波が立った。… / A gentle wind made ripples on th…
 - ok sentence 97889 彼らはその船を岸にあげた。… / They drew the boat on the beach.…
 - ok sentence 205558 それはあまり価値がない。… / It's not worth much.…
+
+
+### 2026-10-07 — Motion system, fonts and copy
+
+- Chose the Blend direction (calm lacquer outside a session, kinetic inside it). Added `src/app/motion`: pure easing helpers with tests, a full-screen effects canvas (seal on the tile's corner, gold crack, brush wipe, ×3/×5/×10 text), the opening scene (once per visit, any tap skips), the mended-bowl results scene, and WebAudio synthesis (koto, taiko, bell, seal thud, swish) with a Sound setting on by default. Motion has Full, Gentle and system reduce-motion tiers; both new settings are device-local and never synced.
+- Fonts replaced: M PLUS 2 (UI and Latin), Zen Antique (headings), Dela Gothic One (combo text), Shippori Mincho kept for the kanji itself. The first-session font budget is now 440 kB (measured 414 kB).
+- Copy rewritten to plain wording; "repaired" now only describes recovered mistakes, and kanji that have settled are "known".
+- Interactive prototype of all 15 screens (phone and desktop) published as an artifact for design review.

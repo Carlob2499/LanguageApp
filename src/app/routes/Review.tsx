@@ -80,8 +80,10 @@ export function ReviewRoute() {
 
   /** Sound and a flourish for the grade, on the frame the learner commits to it. */
   function celebrate(g: Grade) {
-    const x = window.innerWidth / 2
-    const y = window.innerHeight * 0.42
+    // The seal lands on the tile's upper-right corner, like a stamp, clear of the kanji.
+    const r = document.querySelector('[data-tile]')?.getBoundingClientRect()
+    const x = r ? r.right - 62 : window.innerWidth * 0.78
+    const y = r ? r.top + 62 : window.innerHeight * 0.2
     if (g === 1) {
       streak.current = 0
       cue('crack')
@@ -95,7 +97,7 @@ export function ReviewRoute() {
     cue('seal', streak.current)
     fx({ kind: 'seal', x, y })
     if ((session.card?.lapses ?? 0) > 0) {
-      fx({ kind: 'gold', x, y: y + 90 })
+      fx({ kind: 'gold', x: r ? r.left + r.width / 2 : x, y: r ? r.bottom - 70 : y + 90 })
       cue('gold', streak.current)
     }
     const beat = comboBeat(streak.current)

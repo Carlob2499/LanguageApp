@@ -62,6 +62,7 @@ export function Tile({ children, swipeEnabled, onSwipe, cardKey }: TileProps) {
       <motion.div className={styles.glowAgain} style={{ opacity: againGlow }} aria-hidden="true" />
       <motion.div
         className={styles.tile}
+        data-tile=""
         style={{ x, rotate: reduced ? 0 : rotate }}
         drag={swipeEnabled ? 'x' : false}
         dragConstraints={{ left: 0, right: 0 }}
