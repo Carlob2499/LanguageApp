@@ -69,4 +69,23 @@ test.describe('motion', () => {
     await expect(page.locator('canvas[class*="stage"]')).toHaveCount(1)
     expect(errors).toEqual([])
   })
+
+  test('Romaji typing shows live kana and can switch to Kana', async ({ page }) => {
+    await visit(page)
+    await page.keyboard.press('Space')
+    await page.goto('/review')
+    const input = page.getByLabel('Type the reading in kana or romaji')
+    // Meaning cards come first; grade them until a typed-reading card appears.
+    for (let i = 0; i < 30 && !(await input.isVisible()); i++) {
+      await answerCard(page, 'Good')
+    }
+    await expect(input).toBeVisible()
+    await expect(input).toHaveAttribute('placeholder', /romaji/)
+    await input.fill('gakkou')
+    await expect(page.getByText('がっこう', { exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Kana', exact: true }).click()
+    await expect(input).toHaveAttribute('placeholder', 'Type in kana')
+    const stored = await page.evaluate(() => localStorage.getItem('kintsugi.settings'))
+    expect(JSON.parse(stored ?? '{}')).toMatchObject({ typing: 'kana' })
+  })
 })
