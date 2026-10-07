@@ -72,7 +72,9 @@ export function KanjiStudy({ char, embedded = false }: { char: string; embedded?
 
   useEffect(() => {
     let cancelled = false
-    void findKanji(char).then((d) => !cancelled && setLoaded({ char, data: d ?? null }))
+    void findKanji(char)
+      .then((d) => !cancelled && setLoaded({ char, data: d ?? null }))
+      .catch(() => !cancelled && setLoaded({ char, data: null }))
     return () => {
       cancelled = true
     }
@@ -111,9 +113,11 @@ export function KanjiStudy({ char, embedded = false }: { char: string; embedded?
   useEffect(() => {
     if (!selectedPart) return
     let cancelled = false
-    void findKanjiUsing(selectedPart, { exclude: char, limit: 10 }).then((list) => {
-      if (!cancelled) setAlsoIn(list)
-    })
+    void findKanjiUsing(selectedPart, { exclude: char, limit: 10 })
+      .catch(() => [])
+      .then((list) => {
+        if (!cancelled) setAlsoIn(list)
+      })
     return () => {
       cancelled = true
     }

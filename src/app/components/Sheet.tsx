@@ -1,4 +1,4 @@
-import { animate, motion, useMotionValue, type PanInfo } from 'motion/react'
+import { animate, motion, useMotionValue, useReducedMotion, type PanInfo } from 'motion/react'
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 
 import styles from './Sheet.module.css'
@@ -13,6 +13,7 @@ export function Sheet({
   title,
   children,
   peek = 0.42,
+  titleLang,
 }: {
   open: boolean
   onClose: () => void
@@ -20,7 +21,10 @@ export function Sheet({
   children: ReactNode
   /** Height fraction of the peek detent. */
   peek?: number
+  /** Language of the title, e.g. "ja" when it is a Japanese word. */
+  titleLang?: string | undefined
 }) {
+  const reduced = useReducedMotion()
   const id = useId()
   const y = useMotionValue(0)
   const ref = useRef<HTMLDivElement>(null)
@@ -31,16 +35,52 @@ export function Sheet({
     const d = detents()
     if (open) {
       y.set(d.closed)
-      void animate(y, d.peek, { type: 'spring', bounce: 0.1, duration: 0.45 })
+      void animate(
+        y,
+        d.peek,
+        reduced ? { duration: 0 } : { type: 'spring', bounce: 0, duration: 0.45 },
+      )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
+  // Focus moves into the sheet, stays there, and returns to where it was on close.
   useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    const previous = document.activeElement as HTMLElement | null
+    const frame = requestAnimationFrame(() =>
+      ref.current?.querySelector<HTMLElement>('button, [href], input, [tabindex]')?.focus(),
+    )
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        onClose()
+        return
+      }
+      if (e.key !== 'Tab' || !ref.current) return
+      const items = [
+        ...ref.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, [tabindex]:not([tabindex="-1"])',
+        ),
+      ]
+      if (items.length === 0) return
+      const first = items[0]!
+      const last = items[items.length - 1]!
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('keydown', onKey, true)
+      previous?.focus()
+    }
   }, [open, onClose])
 
   function settle(_: unknown, info: PanInfo) {
@@ -48,9 +88,11 @@ export function Sheet({
     const projected = y.get() + info.velocity.y * 0.18
     const target =
       projected > (d.peek + d.closed) / 2 ? 'closed' : projected > d.peek / 2 ? 'peek' : 'full'
+    const flick = Math.abs(info.velocity.y) > 600
     void animate(y, d[target], {
       type: 'spring',
-      bounce: 0.1,
+      // Bounce only after a flick, per the house motion rules.
+      bounce: flick && !reduced ? 0.15 : 0,
       duration: 0.4,
       velocity: info.velocity.y,
     }).then(() => {
@@ -82,7 +124,7 @@ export function Sheet({
       >
         <div className={styles.handle} aria-hidden="true" />
         <header className={styles.header}>
-          <h2 id={`${id}-title`} className={styles.title}>
+          <h2 id={`${id}-title`} className={styles.title} lang={titleLang}>
             {title}
           </h2>
           <button type="button" className={styles.close} onClick={onClose} aria-label="Close">

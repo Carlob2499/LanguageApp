@@ -5,6 +5,8 @@ import type { ReviewRecord, StudyCard } from '@/engine/types'
 export interface SettingRow {
   key: string
   value: unknown
+  /** When this setting last changed on any device; decides which side wins a sync merge. */
+  updatedAt?: number
 }
 
 export interface DayStatRow {

@@ -52,8 +52,10 @@ export interface StudySession {
   undo: () => Promise<void>
   /** The card just graded, after scheduling; drives the leech prompt. */
   lastGraded?: StudyCard
-  /** Sets a card aside: it leaves future queues until the learner clears it in the library. */
+  /** Sets a card aside: it leaves future queues until the learner restores it in the library. */
   suspend: (key: string) => Promise<void>
+  /** Drops the current card from this session without a review. */
+  skip: () => void
 }
 
 async function readTodayCounts(now: number) {
@@ -219,10 +221,18 @@ export function useStudySession(): StudySession {
     [persistIndex, scheduler],
   )
 
+  const skip = useCallback(() => {
+    const next = reduceSession(stateRef.current, { type: 'skip' })
+    stateRef.current = next
+    setState(next)
+    setVerdict(undefined)
+    void persistIndex(next)
+  }, [persistIndex])
+
   const suspend = useCallback(async (key: string) => {
     await withReopen(async () => {
       const row = await db.cards.get(key)
-      if (row) await db.cards.put({ ...row, suspended: true })
+      if (row) await db.cards.put({ ...row, suspended: true, modifiedAt: Date.now() })
     })
   }, [])
 
@@ -274,6 +284,7 @@ export function useStudySession(): StudySession {
     grade,
     undo,
     suspend,
+    skip,
     ...(state.history.length > 0 ? { lastGraded: state.history.at(-1)!.after } : {}),
     ...(error === undefined ? {} : { error }),
     ...(library ? { library } : {}),

@@ -50,12 +50,44 @@ export interface RestoreSummary {
 }
 
 /** Replaces everything on this device with the backup's contents. */
+interface BackupShape {
+  formatName: string
+  data: {
+    databaseName: string
+    tables: Array<{ name: string }>
+    data: Array<{ tableName: string; rows: unknown[] }>
+  }
+}
+
+const TABLES = new Set(['cards', 'reviews', 'settings', 'days', 'notes'])
+
+function isBackup(v: unknown): v is BackupShape {
+  if (typeof v !== 'object' || v === null) return false
+  const b = v as Partial<BackupShape>
+  if (b.formatName !== 'dexie' || typeof b.data !== 'object' || b.data === null) return false
+  if (!Array.isArray(b.data.data)) return false
+  return b.data.data.every(
+    (t) =>
+      typeof t === 'object' &&
+      t !== null &&
+      TABLES.has(t.tableName) &&
+      Array.isArray(t.rows) &&
+      t.rows.every((r) => typeof r === 'object' && r !== null && !Array.isArray(r)),
+  )
+}
+
 export async function restoreProgress(file: File): Promise<RestoreSummary> {
   if (file.size > MAX_BACKUP_BYTES) throw new Error('That file is far too large to be a backup.')
-  const head = await file.slice(0, 200).text()
-  if (!head.includes('"formatName"') || !head.includes('dexie')) {
-    throw new Error('That file is not a Kintsugi backup.')
+  // Read and check the whole file before anything is cleared, so a truncated or foreign file
+  // can never leave the device empty.
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(await file.text())
+  } catch {
+    throw new Error('That file is damaged or not a Kintsugi backup.')
   }
+  if (!isBackup(parsed)) throw new Error('That file is not a Kintsugi backup.')
+  file = new File([JSON.stringify(parsed)], file.name, { type: 'application/json' })
   // Keep this device's sync key and session; never take them from a file.
   const keep = (await db.settings.bulkGet([...LOCAL_ONLY])).filter(
     (r): r is NonNullable<typeof r> => r !== undefined,

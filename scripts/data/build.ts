@@ -238,7 +238,8 @@ for (const line of (await readBz2Text(join(RAW_DIR, 'jpn_sentences_detailed.tsv.
   const [id, , , user] = line.split('\t')
   if (id && user && user !== '\\N') contributor.set(Number.parseInt(id, 10), user)
 }
-const ALLOWED_AUDIO = new Set(['CC BY 4.0', 'CC BY-NC 4.0', 'CC BY-SA 4.0', 'CC0 1.0'])
+// Matches the content rules in CLAUDE.md: attribution licences only, credited per clip.
+const ALLOWED_AUDIO = new Set(['CC BY 4.0', 'CC BY-NC 4.0'])
 const audioBySentence = new Map<number, { id: number; speaker: string; licence: string }>()
 for (const line of (await readBz2Text(join(RAW_DIR, 'jpn_sentences_with_audio.tsv.bz2'))).split(
   '\n',

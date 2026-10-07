@@ -106,6 +106,24 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - Progress gains a kanji mosaic: every kanji of the current level as a tile, gold when repaired, bone when learning, vermilion-edged when cracked, faint when not met, each linking to its page, with counts. The heatmap became fixed-size lacquer cells with month labels, a ringed today cell and a Less/More legend; desktop vessels are larger.
 - Sound: words are spoken as soon as their answer is revealed, kana and cloze words as soon as they are answered (Settings → Speak Japanese, on by default, kept per device and out of sync).
 
+### 2026-10-07 — Independent and security reviews
+
+Two independent reviews ran against PLAN.md and the Definition of done (one on correctness, accessibility and content rules, one on security). Every finding was checked against the code. Dispositions:
+
+- Fixed, blocker: due cards from an earlier level showed "missing from the pack" after a level change. The library now loads items for every level that has cards (new cards still come only from the current level); `levels.spec.ts` covers it.
+- Fixed: the Skip button for an unavailable item did nothing on touch; a real `skip` session action now drops the card without writing a review (unit-tested with undo).
+- Fixed: a sync could wipe grades made while it was in flight; local rows are now read, merged and written in one transaction after the network fetch.
+- Fixed: server writes were not atomic; they are now conditional on the blob ETag (409 on a race).
+- Fixed: snapshots would outgrow Vercel's 4.5 MB body limit after months of use; they are gzipped before encryption and the cap is 4 MB with a clear message.
+- Fixed: synced settings never reached the other device; each setting row carries `updatedAt` and merges per key, and the settings store reloads after a sync.
+- Fixed: a failed restore could leave the device empty; the whole file is parsed and checked before anything is cleared (damaged-file e2e). Backups no longer carry the sync key or the session, and restores keep the local ones.
+- Fixed: "Restart now" in one tab could reload another tab mid-review; cross-tab reloads wait until the tab leaves /review or /placement.
+- Fixed: "Set it aside" had no way back; Settings → Set aside lists those cards with "Bring back", and card changes outside reviews carry `modifiedAt` for merging.
+- Fixed: the details sheet now traps and returns focus, owns Escape and 1–4 while open, marks its Japanese title `lang="ja"`, honours reduced motion and bounces only after a flick. Review shortcuts ignore modified keys; the delayed Again is cancelled on undo.
+- Fixed (security): sync ids and a new HKDF-derived write token travel in headers, not URLs; the server stores only the token's hash and requires it for later writes; version and id are bound into the ciphertext as AES-GCM additional data; an unreadable server copy can be replaced from the device; joining shows who the key shares progress with; the service worker never answers /api navigations.
+- Fixed (content): the audio filter in the pipeline now allows only CC BY and CC BY-NC, matching CLAUDE.md (the shipped clips were already BY-NC). "Say it" says which service recognises speech. Pack lookups on the kanji page fail softly offline.
+- Deferred, with reason: per-IP rate limiting on /api/sync belongs in a Vercel Firewall rule (HANDOFF.md says so); daily counters merging by max can undercount new cards when two devices study the same day (bounded, self-correcting next day); deleting a note or undoing a synced grade can be resurrected by the other device's snapshot (needs tombstones; rare).
+
 ## Spot-checks
 
 (none yet)

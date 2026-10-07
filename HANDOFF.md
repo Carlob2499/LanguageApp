@@ -15,6 +15,7 @@ The app works fully offline without anything else. Sync stays off and says so un
 1. Vercel project → Storage → Create → Blob → connect it to this project (all environments).
 2. Redeploy once (Deployments → ⋯ → Redeploy) so the function sees `BLOB_READ_WRITE_TOKEN`.
 3. Settings → Sync between devices → Turn on sync now reports "Synced". The free Blob tier is enough: the app uploads at most 60 snapshots a day per learner.
+4. Recommended: Vercel project → Firewall → add a rate-limit rule on `/api/sync` (for example 60 requests per minute per IP). The function checks a write token, but only a firewall rule stops someone from spending the Blob operations budget with junk requests.
 
 ## 3. Check it on your phone
 

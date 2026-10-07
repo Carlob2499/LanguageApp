@@ -98,7 +98,9 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     set({ settings })
     const { db, withReopen } = await import('@/db')
     await withReopen(() =>
-      db.settings.bulkPut(Object.entries(patch).map(([key, value]) => ({ key, value }))),
+      db.settings.bulkPut(
+        Object.entries(patch).map(([key, value]) => ({ key, value, updatedAt: Date.now() })),
+      ),
     )
   },
 }))

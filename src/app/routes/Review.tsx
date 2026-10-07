@@ -68,22 +68,36 @@ export function ReviewRoute() {
   }, [last])
 
   /** Again cracks the tile for a beat before the card moves on. */
+  const crackTimer = useRef(0)
+  useEffect(() => () => window.clearTimeout(crackTimer.current), [])
+
   function gradeWithCrack(g: Grade) {
     if (g === 1 && !cracking) {
       setCracking(true)
-      window.setTimeout(() => {
+      const key = session.card?.key
+      crackTimer.current = window.setTimeout(() => {
         setCracking(false)
-        void session.grade(1)
+        // Only if the same card is still in front of the learner (undo may have moved on).
+        if (session.card?.key === key) void session.grade(1)
       }, 460)
       return
     }
     void session.grade(g)
   }
 
+  function undoNow() {
+    window.clearTimeout(crackTimer.current)
+    setCracking(false)
+    void session.undo()
+  }
+
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
         return
+      if (event.metaKey || event.ctrlKey || event.altKey) return
+      // A dialog (the details sheet) owns the keyboard while it is open.
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
       if (event.key === ' ' && !session.revealed) {
         event.preventDefault()
         session.reveal()
@@ -93,7 +107,7 @@ export function ReviewRoute() {
         event.preventDefault()
         gradeWithCrack(session.suggestedGrade)
       } else if (event.key.toLowerCase() === 'u' && session.canUndo) {
-        void session.undo()
+        undoNow()
       } else if (event.key === 'Escape') {
         navigate('/')
       }
@@ -184,7 +198,7 @@ export function ReviewRoute() {
           className={styles.iconButton}
           aria-label="Undo last grade"
           disabled={!session.canUndo}
-          onClick={() => void session.undo()}
+          onClick={undoNow}
         >
           <Icon name="undo" />
         </button>
@@ -253,7 +267,7 @@ export function ReviewRoute() {
       ) : (
         <div className={styles.center} role="alert">
           <p>This card's word is missing from the pack. Skipping it.</p>
-          <Button onClick={() => void session.grade(3)}>Skip</Button>
+          <Button onClick={session.skip}>Skip</Button>
         </div>
       )}
     </div>
@@ -409,7 +423,7 @@ function CardFace({
       </div>
 
       {word && (
-        <Sheet open={sheet} onClose={() => setSheet(false)} title={form}>
+        <Sheet open={sheet} onClose={() => setSheet(false)} title={form} titleLang="ja">
           <p className={styles.sheetReading} lang="ja">
             {word ? readingsFor(word, form).join('、') : ''}
           </p>
@@ -623,6 +637,11 @@ function ReadingInput({ item, session }: { item: VocabItem; session: Session }) 
       {heard && (
         <p className={styles.heard} role="status" lang="ja">
           {heard}
+        </p>
+      )}
+      {canSpeak && !heard && !listening && (
+        <p className={styles.heard}>
+          Speech is recognised by your browser's service (Apple in Safari, Google in Chrome).
         </p>
       )}
     </form>

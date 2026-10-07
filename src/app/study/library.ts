@@ -2,7 +2,7 @@ import { db } from '@/db'
 import { Scheduler } from '@/engine/scheduler'
 import type { StudyCard } from '@/engine/types'
 import { cardTypesFor, DERIVED_STABILITY_DAYS, JA_CARD_TYPES } from '@/packs/ja/cards'
-import type { Level } from '@/packs/ja/levels'
+import { LEVELS, type Level } from '@/packs/ja/levels'
 import { loadConfusables, loadKana, loadLevelItems, loadSentences } from '@/packs/ja/loader'
 import type { ConfusableItem, KanaItem, KanjiItem, SentenceItem, VocabItem } from '@/packs/ja/types'
 
@@ -62,13 +62,26 @@ export async function loadLibrary(
   now: number,
   options: { kanaReady: boolean },
 ): Promise<LevelLibrary> {
-  const [{ kanji, vocab }, kanaList, sentenceList, confusableList, existing] = await Promise.all([
-    loadLevelItems(level),
+  const existing = await db.cards.toArray()
+  // Due cards can come from any level the learner has studied, not just the current one.
+  const levels = [
+    ...new Set<Level>([
+      level,
+      ...existing
+        .map((c) => c.group)
+        .filter((g): g is Level => (LEVELS as readonly string[]).includes(g)),
+    ]),
+  ]
+  const [levelItems, kanaList, sentenceLists, confusableList] = await Promise.all([
+    Promise.all(levels.map((l) => loadLevelItems(l))),
     loadKana(),
-    loadSentences(level),
+    Promise.all(levels.map((l) => loadSentences(l))),
     loadConfusables(),
-    db.cards.toArray(),
   ])
+  const kanji = new Map(levelItems.flatMap((li) => [...li.kanji]))
+  const vocab = new Map(levelItems.flatMap((li) => [...li.vocab]))
+  const sentenceList = sentenceLists.flat()
+  const current = levelItems[0]!
   const scheduler = new Scheduler()
   const kana = new Map(kanaList.map((k) => [k.id, k]))
   const sentences = new Map<string, SentenceItem[]>()
@@ -85,8 +98,9 @@ export async function loadLibrary(
       candidates.push(scheduler.newCard(k.id, JA_CARD_TYPES.kanaRecognition, 'kana', now))
   }
 
-  const kanjiOrder = [...kanji.values()]
-  const vocabOrder = [...vocab.values()]
+  // New cards come only from the current level.
+  const kanjiOrder = [...current.kanji.values()]
+  const vocabOrder = [...current.vocab.values()]
   const max = Math.max(kanjiOrder.length, vocabOrder.length)
   const ratio = vocabOrder.length / Math.max(1, kanjiOrder.length)
   let v = 0

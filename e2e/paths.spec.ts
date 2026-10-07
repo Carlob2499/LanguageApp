@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+
 import { expect, test } from '@playwright/test'
 
 test.describe('beginner and placement paths', () => {
@@ -65,5 +67,22 @@ test.describe('beginner and placement paths', () => {
     const file = await download
     expect(file.suggestedFilename()).toMatch(/^kintsugi-progress-\d{4}-\d{2}-\d{2}\.json$/)
     await expect(page.getByRole('status')).toContainText('Backup downloaded')
+    const saved = await file.path()
+    const text = readFileSync(saved, 'utf8')
+    expect(text).toContain('"formatName":"dexie"')
+
+    // A damaged file is refused before anything is cleared.
+    await page.getByLabel('Choose a backup file').setInputFiles({
+      name: 'broken.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(text.slice(0, Math.floor(text.length / 2))),
+    })
+    await page.getByRole('button', { name: 'Replace' }).click()
+    await expect(page.getByRole('status')).toContainText('damaged or not a Kintsugi backup')
+
+    // The real file restores.
+    await page.getByLabel('Choose a backup file').setInputFiles(saved)
+    await page.getByRole('button', { name: 'Replace' }).click()
+    await expect(page.getByRole('status')).toContainText('Restored')
   })
 })

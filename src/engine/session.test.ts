@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { Scheduler } from './scheduler'
 import { createSession, currentCard, isComplete, progress, reduceSession } from './session'
+import type { ReviewRecord, StudyCard } from './types'
 
 const t0 = Date.UTC(2026, 9, 6, 9, 0, 0)
 const s = new Scheduler()
@@ -78,5 +79,27 @@ describe('session reducer', () => {
   it('ignores undo with empty history', () => {
     const state = createSession([], t0)
     expect(reduceSession(state, { type: 'undo' })).toBe(state)
+  })
+
+  it('skips a card without a review, and undo still restores the last graded card', () => {
+    const a = { key: 'a' } as StudyCard
+    const b = { key: 'b' } as StudyCard
+    const c = { key: 'c' } as StudyCard
+    let s = createSession([a, b, c], 0)
+    s = reduceSession(s, { type: 'reveal' })
+    s = reduceSession(s, {
+      type: 'graded',
+      before: a,
+      after: { ...a, due: 10 ** 12 },
+      record: { key: 'a' } as ReviewRecord,
+      now: 0,
+      sessionWindowMs: 0,
+    })
+    s = reduceSession(s, { type: 'skip' })
+    expect(s.queue.map((q) => q.key)).toEqual(['a', 'c'])
+    expect(currentCard(s)?.key).toBe('c')
+    expect(s.history).toHaveLength(1)
+    s = reduceSession(s, { type: 'undo' })
+    expect(currentCard(s)?.key).toBe('a')
   })
 })

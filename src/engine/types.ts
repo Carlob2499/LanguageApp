@@ -28,6 +28,8 @@ export interface StudyCard {
   introducedAt: number | null
   /** Set aside by the learner (a leech); never queued until cleared. */
   suspended?: boolean
+  /** Last change outside a review (set aside, restored), for merging devices. */
+  modifiedAt?: number
 }
 
 export interface ReviewRecord {

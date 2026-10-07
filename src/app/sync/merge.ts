@@ -22,8 +22,8 @@ const DEVICE_SETTINGS = new Set([
 ])
 
 function newerCard(a: StudyCard, b: StudyCard): StudyCard {
-  const la = a.lastReview ?? 0
-  const lb = b.lastReview ?? 0
+  const la = Math.max(a.lastReview ?? 0, a.modifiedAt ?? 0)
+  const lb = Math.max(b.lastReview ?? 0, b.modifiedAt ?? 0)
   if (la !== lb) return la > lb ? a : b
   return a.reps >= b.reps ? a : b
 }
@@ -64,14 +64,24 @@ export function mergeSnapshots(local: Snapshot, remote: Snapshot): Snapshot {
     )
   }
 
+  // Per key, the most recently changed side wins; rows without a time fall back to the newer
+  // snapshot. Device-specific keys always stay as they are on this device.
   const settings = new Map<string, SettingRow>()
   const remoteNewer = remote.exportedAt > local.exportedAt
-  for (const s of remoteNewer
-    ? [...local.settings, ...remote.settings]
-    : [...remote.settings, ...local.settings]) {
-    if (DEVICE_SETTINGS.has(s.key)) continue
-    settings.set(s.key, s)
+  const stamp = (r: SettingRow, fromRemote: boolean) =>
+    r.updatedAt ?? (fromRemote === remoteNewer ? 1 : 0)
+  const candidates: Array<[SettingRow, boolean]> = [
+    ...remote.settings.map((r): [SettingRow, boolean] => [r, true]),
+    ...local.settings.map((r): [SettingRow, boolean] => [r, false]),
+  ]
+  const best = new Map<string, [SettingRow, number]>()
+  for (const [row, fromRemote] of candidates) {
+    if (DEVICE_SETTINGS.has(row.key)) continue
+    const t = stamp(row, fromRemote)
+    const prev = best.get(row.key)
+    if (!prev || t > prev[1] || (t === prev[1] && !fromRemote)) best.set(row.key, [row, t])
   }
+  for (const [key, [row]] of best) settings.set(key, row)
   for (const s of local.settings) if (DEVICE_SETTINGS.has(s.key)) settings.set(s.key, s)
 
   const notes = new Map<string, NoteRow>()

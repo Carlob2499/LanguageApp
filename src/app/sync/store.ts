@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 
+import { useSettings } from '@/app/study/settings'
 import { db, withReopen, type SettingRow } from '@/db'
 
 import {
@@ -54,45 +55,68 @@ async function writeState(state: SyncState | null): Promise<void> {
   })
 }
 
-async function exportSnapshot(): Promise<Snapshot> {
-  const [cards, reviews, days, settings, notes] = await withReopen(() =>
-    Promise.all([
-      db.cards.toArray(),
-      db.reviews.toArray(),
-      db.days.toArray(),
-      db.settings.toArray(),
-      db.notes.toArray(),
-    ]),
-  )
-  return { v: 1, exportedAt: Date.now(), cards, reviews, days, settings, notes }
+function readLocal(): Promise<Snapshot> {
+  return Promise.all([
+    db.cards.toArray(),
+    db.reviews.toArray(),
+    db.days.toArray(),
+    db.settings.toArray(),
+    db.notes.toArray(),
+  ]).then(([cards, reviews, days, settings, notes]) => ({
+    v: 1 as const,
+    exportedAt: Date.now(),
+    cards,
+    reviews,
+    days,
+    settings,
+    notes,
+  }))
 }
 
-async function importSnapshot(s: Snapshot): Promise<void> {
-  await withReopen(() =>
+/**
+ * Reads this device's rows, merges the remote snapshot into them and writes the result, all in
+ * one transaction, so a grade made while the network request was in flight is never lost.
+ */
+async function mergeIntoLocal(remote: Snapshot | undefined): Promise<Snapshot> {
+  return withReopen(() =>
     db.transaction('rw', [db.cards, db.reviews, db.days, db.settings, db.notes], async () => {
+      const local = await readLocal()
+      if (!remote) return local
+      const merged = mergeSnapshots(local, remote)
       await db.cards.clear()
-      await db.cards.bulkPut(s.cards)
+      await db.cards.bulkPut(merged.cards)
       await db.reviews.clear()
       await db.reviews.bulkAdd(
-        s.reviews.map((r) => {
+        merged.reviews.map((r) => {
           const row = { ...r }
           delete row.id
           return row
         }),
       )
       await db.days.clear()
-      await db.days.bulkPut(s.days)
+      await db.days.bulkPut(merged.days)
       const keep = new Set(['sync', 'session'])
-      const local = (await db.settings.toArray()).filter((r) => keep.has(r.key))
+      const kept = local.settings.filter((r) => keep.has(r.key))
       await db.settings.clear()
       await db.settings.bulkPut([
-        ...s.settings.filter((r) => !keep.has(r.key)),
-        ...local,
+        ...merged.settings.filter((r) => !keep.has(r.key)),
+        ...kept,
       ] as SettingRow[])
       await db.notes.clear()
-      await db.notes.bulkPut(s.notes)
+      await db.notes.bulkPut(merged.notes)
+      return merged
     }),
   )
+}
+
+async function gzip(data: Uint8Array): Promise<Uint8Array> {
+  const stream = new Blob([data.slice()]).stream().pipeThrough(new CompressionStream('gzip'))
+  return new Uint8Array(await new Response(stream).arrayBuffer())
+}
+
+async function gunzip(data: Uint8Array): Promise<Uint8Array> {
+  const stream = new Blob([data.slice()]).stream().pipeThrough(new DecompressionStream('gzip'))
+  return new Uint8Array(await new Response(stream).arrayBuffer())
 }
 
 function today(): string {
@@ -153,14 +177,16 @@ export const useSync = create<SyncStore>((set, get) => ({
         return
       }
       let remoteVersion = 0
-      let merged = await exportSnapshot()
+      let remote: Snapshot | undefined
       if (res.ok) {
         const payload = new Uint8Array(await res.arrayBuffer())
         remoteVersion = readVersion(payload)
         if (reason !== 'replace') {
           let parsed: unknown
           try {
-            parsed = JSON.parse(new TextDecoder().decode(await open(aes, payload, id)))
+            parsed = JSON.parse(
+              new TextDecoder().decode(await gunzip(await open(aes, payload, id))),
+            )
           } catch {
             parsed = undefined
           }
@@ -173,17 +199,18 @@ export const useSync = create<SyncStore>((set, get) => ({
             })
             return
           }
-          merged = mergeSnapshots(merged, parsed)
-          await importSnapshot(merged)
+          remote = parsed
         }
       } else if (res.status !== 404) {
         throw new Error(`Server answered ${res.status}`)
       }
+      const merged = await mergeIntoLocal(remote)
+      if (remote) await useSettings.getState().load()
 
       const body = await seal(
         aes,
         remoteVersion + 1,
-        new TextEncoder().encode(JSON.stringify(merged)),
+        await gzip(new TextEncoder().encode(JSON.stringify(merged))),
         id,
       )
       const putRes = await fetch(url, {

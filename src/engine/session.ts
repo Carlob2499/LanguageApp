@@ -25,6 +25,8 @@ export type SessionAction =
       sessionWindowMs: number
     }
   | { type: 'undo' }
+  /** Drops the current card from this session without a review (its item is unavailable). */
+  | { type: 'skip' }
 
 export function createSession(queue: StudyCard[], startedAt: number): SessionState {
   return { queue, index: 0, revealed: false, history: [], startedAt }
@@ -60,6 +62,12 @@ export function reduceSession(state: SessionState, action: SessionAction): Sessi
           { before: action.before, after: action.after, record: action.record, requeued },
         ],
       }
+    }
+    case 'skip': {
+      if (isComplete(state)) return state
+      // Removing the card (rather than stepping past it) keeps undo aligned with the history.
+      const queue = [...state.queue.slice(0, state.index), ...state.queue.slice(state.index + 1)]
+      return { ...state, queue, revealed: false }
     }
     case 'undo': {
       const last = state.history.at(-1)

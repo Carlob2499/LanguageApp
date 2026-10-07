@@ -116,4 +116,27 @@ describe('mergeSnapshots', () => {
     expect(isSnapshot({ v: 2 })).toBe(false)
     expect(isSnapshot('nope')).toBe(false)
   })
+
+  it('lets the most recent edit of each setting win, whichever device made it', () => {
+    const local: Snapshot = {
+      ...base,
+      exportedAt: 5000,
+      settings: [
+        { key: 'newPerDay', value: 10, updatedAt: 100 },
+        { key: 'level', value: 'N4', updatedAt: 900 },
+      ],
+    }
+    const remote: Snapshot = {
+      ...base,
+      exportedAt: 1000,
+      settings: [
+        { key: 'newPerDay', value: 20, updatedAt: 800 },
+        { key: 'level', value: 'N5', updatedAt: 200 },
+      ],
+    }
+    const map = Object.fromEntries(
+      mergeSnapshots(local, remote).settings.map((s) => [s.key, s.value]),
+    )
+    expect(map).toEqual({ newPerDay: 20, level: 'N4' })
+  })
 })

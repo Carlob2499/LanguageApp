@@ -36,6 +36,21 @@ export function registerServiceWorker(): void {
       state.needRefresh = true
       emit()
     },
+    // A new worker took control (another tab tapped Restart). Reload this tab only when it is not
+    // in the middle of a review or the placement test; otherwise wait until it leaves.
+    onNeedReload() {
+      const busy = () => ['/review', '/placement'].includes(window.location.pathname)
+      if (!busy()) {
+        window.location.reload()
+        return
+      }
+      const id = window.setInterval(() => {
+        if (!busy()) {
+          window.clearInterval(id)
+          window.location.reload()
+        }
+      }, 1000)
+    },
     onOfflineReady() {
       state.offlineReady = true
       emit()

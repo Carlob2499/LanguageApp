@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/app/components/Button'
 import { Icon } from '@/app/components/Icon'
+import { SetAside } from '@/app/components/SetAside'
 import { SyncPanel } from '@/app/components/SyncPanel'
 import { Link } from '@/app/router/index'
 import { restoreProgress, saveProgress } from '@/app/study/backup'
@@ -199,6 +200,10 @@ export function SettingsRoute() {
             </p>
           )}
         </Row>
+      </Group>
+
+      <Group title="Set aside">
+        <SetAside />
       </Group>
 
       <Group title="Sync between devices">
