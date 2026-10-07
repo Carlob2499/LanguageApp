@@ -39,4 +39,18 @@ describe('content security policy', () => {
     }
     expect(html).toContain('kintsugi.settings')
   })
+
+  it('serves the app shell for deep links', () => {
+    const config = JSON.parse(readFileSync(resolve(process.cwd(), 'vercel.json'), 'utf8')) as {
+      cleanUrls?: boolean
+      rewrites: Array<{ source: string; destination: string }>
+    }
+    // cleanUrls stops Vercel serving /index.html, which made every rewrite to it a 404 in
+    // production (only "/" worked). The app has no other .html pages, so it stays off.
+    expect(config.cleanUrls).toBeUndefined()
+    expect(config.rewrites).toContainEqual({
+      source: '/((?!api/).*)',
+      destination: '/index.html',
+    })
+  })
 })
