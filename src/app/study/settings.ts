@@ -21,6 +21,8 @@ export interface Settings {
   placedAt?: Level
   /** Local reminder; device-specific, never synced. */
   reminder: ReminderSettings
+  /** Speak words when revealed and kana when answered (on-device voice). */
+  autoAudio: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -34,6 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
   jaTextScale: 1,
   kanaReady: true,
   reminder: DEFAULT_REMINDER,
+  autoAudio: true,
 }
 
 const SETTINGS_KEYS = new Set<string>([...Object.keys(DEFAULT_SETTINGS), 'placedAt'])

@@ -54,6 +54,9 @@ for (const [name, device] of Object.entries(viewports)) {
   await page.waitForTimeout(1500)
   await shot('welcome')
   await page.getByRole('button', { name: 'Start' }).click()
+  await page.getByRole('radio', { name: /^漢/ }).click()
+  await shot('welcome-kana')
+  await page.getByRole('button', { name: 'Pick a level myself' }).click()
   await shot('welcome-level')
   await page.getByRole('button', { name: 'Continue' }).click()
   await page.getByRole('button', { name: 'Begin' }).click()
@@ -93,7 +96,7 @@ for (const [name, device] of Object.entries(viewports)) {
   await page.waitForTimeout(500)
   await shot('sources')
   await ctx.close()
-  console.log(`${name}: 10 screenshots`)
+  console.log(`${name}: 11 screenshots`)
 }
 await browser.close()
 console.log(`Screenshots in ${out}`)

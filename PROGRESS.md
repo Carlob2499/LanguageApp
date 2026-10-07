@@ -100,6 +100,12 @@ Plan: PLAN.md. Update this file at every milestone so work survives context comp
 - Long multiple-choice labels step down to body size so meanings do not wrap to three lines.
 - Tests: 73 unit, 37 e2e (`immersion.spec.ts` seeds two settled cards and grades both new card types).
 
+### 2026-10-07 — Spectacle pass 1
+
+- Visual QA at 360, 430, 834 and 1440 px in dark, light and reduced motion (contact sheets in reports/screenshots/m7). Fixed: light-theme metallic bands on the welcome tiles and the Progress shelf.
+- Progress gains a kanji mosaic: every kanji of the current level as a tile, gold when repaired, bone when learning, vermilion-edged when cracked, faint when not met, each linking to its page, with counts. The heatmap became fixed-size lacquer cells with month labels, a ringed today cell and a Less/More legend; desktop vessels are larger.
+- Sound: words are spoken as soon as their answer is revealed, kana and cloze words as soon as they are answered (Settings → Speak Japanese, on by default, kept per device and out of sync).
+
 ## Spot-checks
 
 (none yet)

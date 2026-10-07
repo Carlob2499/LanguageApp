@@ -12,7 +12,14 @@ export interface Snapshot {
   notes: NoteRow[]
 }
 
-const DEVICE_SETTINGS = new Set(['session', 'sync', 'theme', 'jaTextScale', 'reminder'])
+const DEVICE_SETTINGS = new Set([
+  'session',
+  'sync',
+  'theme',
+  'jaTextScale',
+  'reminder',
+  'autoAudio',
+])
 
 function newerCard(a: StudyCard, b: StudyCard): StudyCard {
   const la = a.lastReview ?? 0

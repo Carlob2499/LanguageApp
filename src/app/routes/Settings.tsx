@@ -132,6 +132,19 @@ export function SettingsRoute() {
             onChange={(v) => set('theme', v)}
           />
         </Row>
+        <Row
+          label="Speak Japanese"
+          hint="Words are read aloud when revealed and kana when answered, using this device's Japanese voice."
+        >
+          <Segmented
+            options={[
+              { value: 'on' as const, label: 'On' },
+              { value: 'off' as const, label: 'Off' },
+            ]}
+            value={settings.autoAudio ? 'on' : 'off'}
+            onChange={(v) => set('autoAudio', v === 'on')}
+          />
+        </Row>
         <Row label="Japanese text size">
           <Segmented
             options={[

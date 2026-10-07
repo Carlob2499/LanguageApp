@@ -6,6 +6,8 @@ import { Crack } from '@/app/components/Crack'
 import { Furigana } from '@/app/components/Furigana'
 import { GoldFlecks } from '@/app/components/GoldFlecks'
 import { Listen } from '@/app/components/Listen'
+import { speak } from '@/app/audio/voice'
+import { useSettings } from '@/app/study/settings'
 import { Trace } from '@/app/components/Trace'
 import { useSync } from '@/app/sync/store'
 import { Icon } from '@/app/components/Icon'
@@ -296,6 +298,12 @@ function CardFace({
   const form = word ? displayForm(word) : ''
   const reading = word ? readingsFor(word, form)[0] : undefined
   const sentence = sentences[0]
+  const autoAudio = useSettings((s) => s.settings.autoAudio)
+
+  // Hear the word the moment its answer shows: sound, spelling and meaning arrive together.
+  useEffect(() => {
+    if (session.revealed && autoAudio && reading) void speak(reading)
+  }, [session.revealed, autoAudio, reading])
 
   return (
     <>
@@ -598,9 +606,17 @@ function ChoiceFace({
 
   const built = useMemo(() => buildChoices(card, item, library), [card, item, library])
 
+  const autoAudio = useSettings((s) => s.settings.autoAudio)
+
   function pick(id: string) {
     if (picked) return
     setPicked(id)
+    if (autoAudio && card.cardType === JA_CARD_TYPES.kanaRecognition)
+      void speak((item as KanaItem).char)
+    if (autoAudio && card.cardType === JA_CARD_TYPES.vocabCloze) {
+      const w = item as VocabItem
+      void speak(readingsFor(w, displayForm(w))[0] ?? displayForm(w))
+    }
     const right = id === built.correctId
     session.answer(right ? 'right' : 'wrong')
     window.setTimeout(() => onGrade(right ? 3 : 1), right ? 700 : 1500)
