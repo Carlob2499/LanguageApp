@@ -49,7 +49,9 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
 })
 
 // App shell for navigations (SPA).
-registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')))
+registerRoute(
+  new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/^\/api\//] }),
+)
 
 // Content packs: serve cached, refresh in the background (packs are versioned by data:update).
 registerRoute(

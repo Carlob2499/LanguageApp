@@ -36,7 +36,9 @@ interface SyncStore {
   load: () => Promise<void>
   enable: (keyText?: string) => Promise<string | undefined>
   disable: () => Promise<void>
-  sync: (reason: 'manual' | 'session') => Promise<void>
+  sync: (reason: 'manual' | 'session' | 'replace') => Promise<void>
+  /** True when the server copy could not be read with this key; offers a replace. */
+  unreadable?: boolean
 }
 
 async function readState(): Promise<SyncState | null> {
@@ -140,10 +142,12 @@ export const useSync = create<SyncStore>((set, get) => ({
     try {
       const keyBytes = decodeKey(state.key)
       if (!keyBytes) throw new Error('Stored sync key is unreadable')
-      const { aes, id } = await deriveKeys(keyBytes)
-      const url = `/api/sync?id=${id}`
+      const { aes, id, auth } = await deriveKeys(keyBytes)
+      // The id and token travel in headers, never in the URL, so request logs never record them.
+      const url = '/api/sync'
+      const headers = { 'x-sync-id': id, 'x-sync-auth': auth }
 
-      const res = await fetch(url, { cache: 'no-store' })
+      const res = await fetch(url, { cache: 'no-store', headers })
       if (res.status === 503) {
         set({ status: 'unconfigured', message: 'Sync is not switched on for this deployment yet.' })
         return
@@ -153,11 +157,25 @@ export const useSync = create<SyncStore>((set, get) => ({
       if (res.ok) {
         const payload = new Uint8Array(await res.arrayBuffer())
         remoteVersion = readVersion(payload)
-        const parsed: unknown = JSON.parse(new TextDecoder().decode(await open(aes, payload)))
-        if (!isSnapshot(parsed))
-          throw new Error('The snapshot on the server is not in a known format')
-        merged = mergeSnapshots(merged, parsed)
-        await importSnapshot(merged)
+        if (reason !== 'replace') {
+          let parsed: unknown
+          try {
+            parsed = JSON.parse(new TextDecoder().decode(await open(aes, payload, id)))
+          } catch {
+            parsed = undefined
+          }
+          if (!isSnapshot(parsed)) {
+            set({
+              status: 'error',
+              unreadable: true,
+              message:
+                'The copy on the server cannot be read with this key. You can replace it with what is on this device.',
+            })
+            return
+          }
+          merged = mergeSnapshots(merged, parsed)
+          await importSnapshot(merged)
+        }
       } else if (res.status !== 404) {
         throw new Error(`Server answered ${res.status}`)
       }
@@ -166,12 +184,28 @@ export const useSync = create<SyncStore>((set, get) => ({
         aes,
         remoteVersion + 1,
         new TextEncoder().encode(JSON.stringify(merged)),
+        id,
       )
       const putRes = await fetch(url, {
         method: 'PUT',
-        headers: { 'If-Match': String(remoteVersion), 'Content-Type': 'application/octet-stream' },
+        headers: {
+          ...headers,
+          'If-Match': String(remoteVersion),
+          'Content-Type': 'application/octet-stream',
+        },
         body: body.slice(),
       })
+      if (putRes.status === 403) {
+        set({
+          status: 'error',
+          message: 'The server refused this key. Turn sync off and on again.',
+        })
+        return
+      }
+      if (putRes.status === 413) {
+        set({ status: 'error', message: 'Your progress is too large to sync in one piece.' })
+        return
+      }
       if (putRes.status === 409) {
         // Another device wrote in between; the next sync merges again.
         set({ status: 'idle', message: 'Another device just synced. Tap again to merge.' })
@@ -188,7 +222,7 @@ export const useSync = create<SyncStore>((set, get) => ({
         pushes: state.pushDay === day ? state.pushes + 1 : 1,
       }
       await writeState(next)
-      set({ state: next, status: 'idle', message: undefined })
+      set({ state: next, status: 'idle', message: undefined, unreadable: false })
     } catch (error) {
       set({ status: 'error', message: error instanceof Error ? error.message : String(error) })
     }

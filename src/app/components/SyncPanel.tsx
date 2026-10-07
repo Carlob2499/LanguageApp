@@ -15,7 +15,7 @@ function pairingUrl(key: string): string {
  * server. No account, no password: whoever has the key has the snapshot.
  */
 export function SyncPanel({ joinKey }: { joinKey?: string | undefined }) {
-  const { state, status, message, loaded, load, enable, disable, sync } = useSync()
+  const { state, status, message, loaded, load, enable, disable, sync, unreadable } = useSync()
   const [joining, setJoining] = useState(joinKey !== undefined)
   const [keyText, setKeyText] = useState(joinKey ?? '')
   const [error, setError] = useState<string>()
@@ -87,6 +87,10 @@ export function SyncPanel({ joinKey }: { joinKey?: string | undefined }) {
               spellCheck={false}
               autoCapitalize="characters"
             />
+            <p className={styles.fine}>
+              Joining shares this device's progress with whoever holds the key. Only use a key from
+              your own device.
+            </p>
             {error && (
               <p className={styles.error} role="alert">
                 {error}
@@ -157,6 +161,11 @@ export function SyncPanel({ joinKey }: { joinKey?: string | undefined }) {
         >
           Sync now
         </Button>
+        {unreadable && (
+          <Button variant="danger" onClick={() => void sync('replace')}>
+            Replace server copy
+          </Button>
+        )}
         <Button onClick={() => void copy()}>{copied ? 'Copied' : 'Copy key'}</Button>
         <Button variant="quiet" onClick={() => void disable()}>
           Turn off

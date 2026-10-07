@@ -26,3 +26,23 @@ export function checkReading(answer: string, accepted: string[]): ReadingCheck {
 export function looksLikeKana(input: string): boolean {
   return input.length > 0 && isKana(input)
 }
+
+/**
+ * A spoken answer is right when any recognition alternative is the reading, or spells the word
+ * itself (recognisers usually return kanji for a known word).
+ */
+export function checkSpoken(
+  alternatives: string[],
+  accepted: string[],
+  forms: string[],
+): ReadingCheck {
+  const clean = (s: string) => s.trim().replace(/[\s\u3000.,!?\u3002\u3001\uff01\uff1f]/g, '')
+  for (const alt of alternatives) {
+    const said = clean(alt)
+    if (said.length === 0) continue
+    if (forms.some((f) => clean(f) === said)) return { correct: true, matched: said }
+    const reading = checkReading(said, accepted)
+    if (reading.correct) return reading
+  }
+  return { correct: false }
+}

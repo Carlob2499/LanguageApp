@@ -424,3 +424,16 @@
   display: inline-flex;
   align-items: center;
 }
+
+.sayIt[aria-pressed='true'] {
+  color: var(--accent-text, var(--k-gold));
+  border-color: rgb(217 164 65 / 0.5);
+}
+
+.heard {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: center;
+  color: var(--fg-faint);
+  font-size: var(--fs-small);
+}

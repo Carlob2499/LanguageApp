@@ -6,6 +6,7 @@ import { Crack } from '@/app/components/Crack'
 import { Furigana } from '@/app/components/Furigana'
 import { GoldFlecks } from '@/app/components/GoldFlecks'
 import { Listen } from '@/app/components/Listen'
+import { hearJapanese, recognitionSupported } from '@/app/audio/listen'
 import { speak } from '@/app/audio/voice'
 import { useSettings } from '@/app/study/settings'
 import { Trace } from '@/app/components/Trace'
@@ -22,7 +23,7 @@ import { GRADE_LABELS } from '@/engine/session'
 import type { TracingState } from '@/engine/tracing'
 import type { Grade, StudyCard } from '@/engine/types'
 import { displayForm, JA_CARD_TYPES, primaryGloss, readingsFor } from '@/packs/ja/cards'
-import { checkReading } from '@/packs/ja/grading'
+import { checkReading, checkSpoken } from '@/packs/ja/grading'
 import { sentencesFor, strokesFor } from '@/packs/ja/loader'
 import type { Level } from '@/packs/ja/levels'
 import type { KanaItem, KanjiItem, SentenceItem, StrokeItem, VocabItem } from '@/packs/ja/types'
@@ -545,8 +546,34 @@ function SentenceLine({
 
 function ReadingInput({ item, session }: { item: VocabItem; session: Session }) {
   const [value, setValue] = useState('')
+  const [listening, setListening] = useState(false)
+  const [heard, setHeard] = useState<string>()
   const inputRef = useRef<HTMLInputElement>(null)
   const accepted = readingsFor(item, displayForm(item))
+  const [canSpeak] = useState(recognitionSupported)
+
+  async function sayIt() {
+    setListening(true)
+    setHeard(undefined)
+    const { result } = hearJapanese()
+    const r = await result
+    setListening(false)
+    if (!r.ok) {
+      setHeard(
+        r.error === 'not-allowed' || r.error === 'service-not-allowed'
+          ? 'Microphone access is off for this site.'
+          : 'Nothing heard. Try again, or type it.',
+      )
+      return
+    }
+    setHeard(`Heard: ${r.alternatives[0] ?? ''}`)
+    const check = checkSpoken(
+      r.alternatives,
+      accepted,
+      item.forms.map((f) => f.text),
+    )
+    session.answer(check.correct ? 'right' : 'wrong')
+  }
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -581,6 +608,23 @@ function ReadingInput({ item, session }: { item: VocabItem; session: Session }) 
       <Button variant="primary" type="submit">
         Check
       </Button>
+      {canSpeak && (
+        <Button
+          variant="quiet"
+          onClick={() => void sayIt()}
+          disabled={listening}
+          aria-pressed={listening}
+          className={styles.sayIt}
+        >
+          <Icon name="speaker" size={18} />
+          {listening ? 'Listening…' : 'Say it'}
+        </Button>
+      )}
+      {heard && (
+        <p className={styles.heard} role="status" lang="ja">
+          {heard}
+        </p>
+      )}
     </form>
   )
 }

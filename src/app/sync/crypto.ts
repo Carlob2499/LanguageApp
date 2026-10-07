@@ -7,6 +7,7 @@ export const KEY_BYTES = 16
 const ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ' // Crockford base32: no I, L, O, U
 const INFO_AES = 'kintsugi-sync-v1/aes'
 const INFO_ID = 'kintsugi-sync-v1/id'
+const INFO_AUTH = 'kintsugi-sync-v1/auth'
 
 export function generateSyncKey(): Uint8Array {
   const bytes = new Uint8Array(KEY_BYTES)
@@ -64,6 +65,8 @@ export interface DerivedKeys {
   aes: CryptoKey
   /** Blob id on the server: 32 hex characters derived from the key, not the key itself. */
   id: string
+  /** Write token: the server keeps only its hash and requires it for every upload after the first. */
+  auth: string
 }
 
 export async function deriveKeys(syncKey: Uint8Array): Promise<DerivedKeys> {
@@ -84,19 +87,35 @@ export async function deriveKeys(syncKey: Uint8Array): Promise<DerivedKeys> {
     base,
     128,
   )
-  return { aes, id: hex(idBits) }
+  const authBits = await crypto.subtle.deriveBits(
+    { name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: enc.encode(INFO_AUTH) },
+    base,
+    256,
+  )
+  return { aes, id: hex(idBits), auth: hex(authBits) }
 }
 
 /** Wire format: 4-byte big-endian version, 12-byte IV, AES-GCM ciphertext with tag. */
+function aad(version: number, id: string): Uint8Array<ArrayBuffer> {
+  // The version and blob id are bound into the ciphertext, so an old snapshot cannot be replayed
+  // under a newer version number or moved to another id.
+  return new TextEncoder().encode(`${id}:${version}`)
+}
+
 export async function seal(
   aes: CryptoKey,
   version: number,
   plaintext: Uint8Array,
+  id = '',
 ): Promise<Uint8Array> {
   const iv = new Uint8Array(12)
   crypto.getRandomValues(iv)
   const ct = new Uint8Array(
-    await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aes, plaintext.slice()),
+    await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv, additionalData: aad(version, id) },
+      aes,
+      plaintext.slice(),
+    ),
   )
   const out = new Uint8Array(4 + 12 + ct.length)
   new DataView(out.buffer).setUint32(0, version)
@@ -110,8 +129,14 @@ export function readVersion(payload: Uint8Array): number {
   return new DataView(payload.buffer, payload.byteOffset).getUint32(0)
 }
 
-export async function open(aes: CryptoKey, payload: Uint8Array): Promise<Uint8Array> {
+export async function open(aes: CryptoKey, payload: Uint8Array, id = ''): Promise<Uint8Array> {
   const iv = payload.slice(4, 16)
   const ct = payload.slice(16)
-  return new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, aes, ct))
+  return new Uint8Array(
+    await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv, additionalData: aad(readVersion(payload), id) },
+      aes,
+      ct,
+    ),
+  )
 }

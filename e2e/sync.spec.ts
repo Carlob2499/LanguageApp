@@ -8,15 +8,17 @@ import { answerCard, skipOnboarding } from './helpers'
  */
 class FakeBlobStore {
   bytes = new Map<string, Buffer>()
+  auth = new Map<string, string>()
   puts = 0
   version(id: string): number {
     const b = this.bytes.get(id)
     return b ? b.readUInt32BE(0) : 0
   }
   async install(context: BrowserContext) {
-    await context.route(/\/api\/sync\?/, async (route) => {
-      const url = new URL(route.request().url())
-      const id = url.searchParams.get('id') ?? ''
+    await context.route(/\/api\/sync$/, async (route) => {
+      const h = route.request().headers()
+      const id = h['x-sync-id'] ?? ''
+      if (route.request().url().includes('?')) return route.fulfill({ status: 400 })
       if (!/^[0-9a-f]{32}$/.test(id))
         return route.fulfill({ status: 400, body: '{"error":"bad-id"}' })
       if (route.request().method() === 'GET') {
@@ -32,12 +34,17 @@ class FakeBlobStore {
         })
       }
       if (route.request().method() === 'PUT') {
+        const token = h['x-sync-auth'] ?? ''
+        if (!/^[0-9a-f]{64}$/.test(token)) return route.fulfill({ status: 403 })
+        const stored = this.auth.get(id)
+        if (stored && stored !== token) return route.fulfill({ status: 403 })
         const body = route.request().postDataBuffer()!
-        const expected = Number.parseInt(route.request().headers()['if-match'] ?? '0', 10)
+        const expected = Number.parseInt(h['if-match'] ?? '0', 10)
         const current = this.version(id)
         if (current !== expected || body.readUInt32BE(0) !== current + 1) {
           return route.fulfill({ status: 409, body: JSON.stringify({ version: current }) })
         }
+        this.auth.set(id, token)
         this.bytes.set(id, body)
         this.puts++
         return route.fulfill({ status: 204 })
@@ -127,7 +134,7 @@ test.describe('sync', () => {
     page,
     context,
   }) => {
-    await context.route(/\/api\/sync\?/, (route) =>
+    await context.route(/\/api\/sync$/, (route) =>
       route.fulfill({ status: 503, body: '{"error":"unconfigured"}' }),
     )
     await skipOnboarding(page)

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { checkReading, normaliseReading } from './grading'
+import { checkReading, checkSpoken, normaliseReading } from './grading'
 
 describe('reading grader', () => {
   it('accepts romaji, hiragana and katakana spellings of the same reading', () => {
@@ -16,5 +16,15 @@ describe('reading grader', () => {
   it('ignores spaces and punctuation, and rejects empty answers', () => {
     expect(normaliseReading(' eki mae ')).toBe('えきまえ')
     expect(checkReading('   ', ['えき']).correct).toBe(false)
+  })
+})
+
+describe('checkSpoken', () => {
+  it('accepts the reading in kana, the word in kanji, or any alternative; rejects others', () => {
+    expect(checkSpoken(['えき'], ['えき'], ['駅']).correct).toBe(true)
+    expect(checkSpoken(['駅。'], ['えき'], ['駅']).correct).toBe(true)
+    expect(checkSpoken(['息', 'えき'], ['えき'], ['駅']).correct).toBe(true)
+    expect(checkSpoken(['いき'], ['えき'], ['駅']).correct).toBe(false)
+    expect(checkSpoken([], ['えき'], ['駅']).correct).toBe(false)
   })
 })
