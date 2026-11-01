@@ -189,3 +189,55 @@ Two independent reviews ran against PLAN.md and the Definition of done (one on c
 - Interactive prototype of all 15 screens (phone and desktop) published as an artifact for design review.
 - Palette moved from brown lacquer to a flat indigo-black ink ground (paper theme: cool washi). All card, shell and vignette gradients removed; gold stays the one accent. Welcome screen rebuilt as one centred column with labelled Learned, Missed and Mended tiles. New Typing setting (Romaji by default) shows live kana while you type a reading and adds romaji beside revealed readings.
 - Placement rebuilt as an adaptive test of real multiple-choice questions (what a word means, how it is read) drawn from the level packs, with at most 20 questions and an early stop once the answer is clear. A Bayesian estimate over how many levels are mastered picks each next question; a level meter slides as the estimate moves. The test fills the screen on desktop. Word lists load per level on demand instead of all five up front. Count-up figures, staggered mosaic and heatmap, page-change rise, and onboarding sounds added. vercel.json no longer sets cleanUrls, which had made every deep link 404 in production.
+
+### 2026-11-01 — 50/50 matched (20 kanji vs KANJIDIC2, 20 words vs JMdict, 10 sentences vs JMdict examples)
+- ok   kanji 雑 (N3) on=ザツ/ゾウ kun=まじ.える/まじ.る meanings=miscellaneous strokes=14
+- ok   kanji 瓶 (N2) on=ビン/ヘイ kun=かめ meanings=bottle; vial strokes=11
+- ok   kanji 傑 (N1) on=ケツ kun=すぐ.れる meanings=greatness; excellence strokes=13
+- ok   kanji 双 (N2) on=ソウ kun=ふた/たぐい/ならぶ meanings=pair; set strokes=4
+- ok   kanji 秀 (N1) on=シュウ kun=ひい.でる meanings=excel; excellence strokes=7
+- ok   kanji 鉱 (N2) on=コウ kun=あらがね meanings=mineral; ore strokes=13
+- ok   kanji 程 (N3) on=テイ kun=ほど/-ほど meanings=extent; degree strokes=12
+- ok   kanji 幾 (N3) on=キ kun=いく-/いく.つ/いく.ら meanings=how many; how much strokes=12
+- ok   kanji 奈 (N1) on=ナ/ナイ/ダイ kun=いかん/からなし meanings=Nara; what? strokes=8
+- ok   kanji 洸 (N1) on=コウ kun= meanings=sparkling water strokes=9
+- ok   kanji 狭 (N1) on=キョウ/コウ kun=せま.い/せば.める/せば.まる meanings=cramped; narrow strokes=9
+- ok   kanji 船 (N3) on=セン kun=ふね/ふな- meanings=ship; boat strokes=11
+- ok   kanji 工 (N4) on=コウ/ク/グ kun= meanings=craft; construction strokes=3
+- ok   kanji 肇 (N1) on=チョウ/ジョウ/トウ kun=はじ.める/はじめ meanings=beginning strokes=14
+- ok   kanji 黛 (N1) on=タイ kun=まゆずみ meanings=blackened eyebrows strokes=16
+- ok   kanji 伊 (N1) on=イ kun=かれ meanings=Italy; that one strokes=6
+- ok   kanji 訂 (N1) on=テイ kun=ただ.す meanings=revise; correct strokes=9
+- ok   kanji 澪 (N1) on=レイ kun=みお meanings=water route; shipping channel strokes=16
+- ok   kanji 謁 (N1) on=エツ kun= meanings=audience; audience (with king) strokes=15
+- ok   kanji 相 (N3) on=ソウ/ショウ kun=あい- meanings=inter-; mutual strokes=9
+- ok   vocab 1285390 (N2) 合流 ごうりゅう = confluence (of rivers); flowing together
+- ok   vocab 1263210 (N1) 減少 げんしょう = decrease; reduction
+- ok   vocab 1213680 (N1) 監視 かんし = monitoring; watching
+- ok   vocab 1315960 (N2) 時間割 じかんわり = timetable (esp. a weekly school timetable); schedule
+- ok   vocab 1066680 (N4)  スーツ = suit (clothing)
+- ok   vocab 1484320 (N2) 被せる かぶせる = to cover (with something)
+- ok   vocab 1374880 (N3) 制度 せいど = system; institution
+- ok   vocab 1519120 (N2) 妨げる さまたげる = to disturb; to prevent
+- ok   vocab 1524290 (N1) 麻 あさ = cannabis (Cannabis sativa); hemp (plant)
+- ok   vocab 1255180 (N1) 血管 けっかん = blood vessel; vein
+- ok   vocab 1404510 (N1) 束縛 そくばく = restraint; restriction
+- ok   vocab 1204470 (N1) 概説 がいせつ = overview; outline
+- ok   vocab 1349300 (N1) 尚 なお = still; yet
+- ok   vocab 1576260 (N5) 一日 いちにち = one day
+- ok   vocab 1501110 (N3) 腹 はら = abdomen; belly
+- ok   vocab 1558330 (N3) 列 れつ = row; line
+- ok   vocab 1002290 (N3) お前 おまえ = you
+- ok   vocab 1455250 (N2) 特売 とくばい = special sale; bargain sale
+- ok   vocab 1293850 (N3) 最高 さいこう = best; supreme
+- ok   vocab 1443220 (N1) 電源 でんげん = source of electricity; electrical power
+- ok   sentence 226919 お前を娘の夫にしよう。… / You shall be my daughter's husba…
+- ok   sentence 146544 少年は春の日差しを浴びて仰向けに寝ていた。… / The boy lay on his back, basking…
+- ok   sentence 98534 彼らの間に調和の精神が広がった。… / A harmony prevailed among them.…
+- ok   sentence 126041 腸の具合が悪い。… / I have trouble with my bowels.…
+- ok   sentence 222293 この金で何とか１ヶ月はしのげる。… / The money will carry us for abou…
+- ok   sentence 201044 どこかおかしいと一目で私にはわかりました。… / I could tell at a glance that so…
+- ok   sentence 210747 その公演は万雷の拍手を受けた。… / The performance was received wit…
+- ok   sentence 232902 あなたは「ありがとう」と言うことを怠った。… / You neglected to say "Thank you.…
+- ok   sentence 170330 妻は夫より長生きするものだ。… / Wives usually outlive husbands.…
+- ok   sentence 220252 この道路は有料です。… / We must pay a toll to drive on t…
